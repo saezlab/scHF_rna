@@ -57,6 +57,12 @@ for condition, samples in meta.items():
               (adata.obs.doublet_score < doublet_thr)
         adata = adata[msk, :]
         
+        # Normalize
+        sc.pp.normalize_total(adata, target_sum=1e4)
+        
+        # Log transform
+        sc.pp.log1p(adata)
+        
         # Save results
         os.makedirs('../plot_data/qc/', exist_ok=True)
         pickle.dump(plot_data, open('../plot_data/qc/{0}.pkl'.format(sample), "wb"))

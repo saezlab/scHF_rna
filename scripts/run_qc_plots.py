@@ -7,6 +7,10 @@ import matplotlib.gridspec as gridspec
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib_venn import venn3, venn3_unweighted
 
+"""
+Script to plot different QC metrics after filtering the data.
+"""
+
 
 def plot_mt_vs_counts(data, ax, mt_thr=0.5, fontsize=11):    
     # Plot scatter
