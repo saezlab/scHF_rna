@@ -3,6 +3,11 @@ import scanpy.external as sce
 import numpy as np
 import pandas as pd
 
+'''
+Open all samples QC processed files, concatenate them and run integration using 
+harmony
+'''
+
 meta = {
     'healthy' : ["CK114","CK115","CK139","CK140"],
     'acidosis' : ["CK128"],
@@ -10,16 +15,19 @@ meta = {
     'hf_ckd' : ["CK116","CK126","CK136","CK138"]
 }
 
+# Open and concatenate all samples
 for i, items in enumerate(meta.items()):
     condition, samples = items
     for sample in samples:
         print(sample)
         input_path = '../qc_data/{0}.h5ad'.format(sample)
+        # If first sample initalize AnnData object
         if i == 0:
             adata = sc.read_h5ad(input_path)
             adata.obs['sample'] = [sample]*adata.n_obs
             adata.obs['condition'] = [condition]*adata.n_obs
             
+        # Else concatenate
         else:
             adata_tmp = sc.read_h5ad(input_path)
             adata_tmp.obs['sample'] = [sample]*adata_tmp.n_obs
