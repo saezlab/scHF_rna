@@ -18,6 +18,23 @@ meta = {
     'hf_ckd' : ["CK116","CK126","CK136","CK138"]
 }
 
+drouplet_thresholds = {
+    'CK114' : 0.09,
+    'CK115' : 0.15,
+    'CK116' : 0.10,
+    'CK126' : 0.15,
+    'CK127' : 0.10,
+    'CK128' : 0.15,
+    'CK129' : 0.15,
+    'CK135' : 0.20,
+    'CK136' : 0.05,
+    'CK137' : 0.15,
+    'CK138' : 0.15,
+    'CK139' : 0.15,
+    'CK140' : 0.15,
+    'CK141' : 0.17,
+}
+
 for condition, samples in meta.items():
     for sample in samples:
         # Read raw data
@@ -35,12 +52,16 @@ for condition, samples in meta.items():
         sc.pp.calculate_qc_metrics(adata, qc_vars=['mt'], percent_top=None, log1p=False, inplace=True)
         
         # Compute doublets score
-        sce.pp.scrublet(adata, expected_doublet_rate=0.06, verbose=False)
+        sce.pp.scrublet(adata, verbose=False)
         
         # Set filter values (can be changed)
         mt_thr = 0.5
         gene_qnt = 0.9975
-        doublet_thr = adata.uns['scrublet']['threshold']
+        # Check if availabe threshold
+        if sample in drouplet_thresholds:
+            doublet_thr = drouplet_thresholds[sample]
+        else:
+            doublet_thr = adata.uns['scrublet']['threshold']
         
         # Save cell meta data
         df = adata.obs[['n_genes_by_counts', 'total_counts', 'pct_counts_mt', 'doublet_score']]

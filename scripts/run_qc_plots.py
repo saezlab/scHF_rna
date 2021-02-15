@@ -4,8 +4,7 @@ import pickle
 
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
-from matplotlib.backends.backend_pdf import PdfPages
-from matplotlib_venn import venn3, venn3_unweighted
+from matplotlib_venn import venn3_unweighted
 
 """
 Script to plot different QC metrics after filtering the data.
@@ -34,6 +33,7 @@ def plot_doublet_scores(data, ax, doublet_thr=0.5, fontsize=11):
     ax.axvline(x=doublet_thr, linestyle='--', color="black")
     ax.set_xlabel('Droplet score distribution', fontsize=fontsize)
     ax.set_xlim(-0.05,1)
+    ax.set_xticks(np.arange(0,1,0.1))
 
 
 def plot_ncell_diff(data, ax, mt_thr=0.5, gene_thr=6000, doublet_thr=0.5, fontsize=11):
@@ -88,7 +88,6 @@ total_subsets = np.zeros(7).astype(np.int)
 summary_df = []
 
 # Run QC plots for each sample and store summary
-pp = PdfPages('../plots/qc_plots.pdf')
 for condition, samples in meta.items():
     for sample in samples:
         print(sample)
@@ -123,9 +122,10 @@ for condition, samples in meta.items():
         # Adjust plots
         fig.tight_layout()
         fig.subplots_adjust(top=0.88)
+        fig.set_facecolor('white')
         
-        # Write to pdf
-        pp.savefig(fig)
+        # Write to png
+        fig.savefig('../plots/qc_{0}.png'.format(sample))
         
         # Filter and append
         msk = (df.n_genes_by_counts < gene_thr) & \
@@ -162,9 +162,7 @@ plot_venn(total_subsets, ax)
 
 fig.tight_layout()
 fig.subplots_adjust(top=0.88)
+fig.set_facecolor('white')
 
 # Save
-pp.savefig(fig)
-
-# Close pdf
-pp.close()
+fig.savefig('../plots/qc_summary.png')

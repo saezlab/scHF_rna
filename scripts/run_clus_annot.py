@@ -16,6 +16,7 @@ scores = []
 for res in np.arange(0.1, 1.0, 0.1):
     res = np.around(res, 2)
     res_name = 'leiden_res_{0}'.format(res)
+    print(res_name)
     # Cluster based on a specific resolution
     sc.tl.leiden(adata, resolution=res, key_added=res_name)
     # Compute its silhouette score
