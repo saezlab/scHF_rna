@@ -31,13 +31,17 @@ adata = adatas[0].concatenate(adatas[1:])
 del adatas
 
 # Identify highly-variable genes
-sc.pp.highly_variable_genes(adata, min_mean=0.0125, max_mean=3, min_disp=0.5, batch_key='batch')
+sc.pp.highly_variable_genes(adata, batch_key='batch')
 
 # Save raw gene expression
 adata.raw = adata
 
-# Filter HVG
-adata.var.highly_variable = adata.var.highly_variable_intersection
+# Filter HVG. 
+# HVG must be in at least the 75% of the batches
+num_batches = len(np.unique(adata.obs.batch))
+per_batches = 0.75 # Can be changed
+min_batch = np.ceil(num_batches * per_batches)
+adata.var.highly_variable = adata.var.highly_variable_nbatches > min_batch
 adata = adata[:, adata.var.highly_variable]
 
 # Compute PCA
