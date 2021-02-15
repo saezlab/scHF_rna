@@ -9,10 +9,10 @@ harmony
 '''
 
 meta = {
-    'healthy' : ["CK114","CK115","CK139","CK140"][:2],
+    'healthy' : ["CK114","CK115","CK139","CK140"],
     'acidosis' : ["CK128"],
-    'hf' : ["CK127","CK129","CK135","CK137","CK141"][:2],
-    'hf_ckd' : ["CK116","CK126","CK136","CK138"][:2]
+    'hf' : ["CK127","CK129","CK135","CK137","CK141"],
+    'hf_ckd' : ["CK116","CK126","CK136","CK138"]
 }
 
 # Open and concatenate all samples
@@ -31,19 +31,22 @@ adata = adatas[0].concatenate(adatas[1:])
 del adatas
 
 # Identify highly-variable genes
-sc.pp.highly_variable_genes(adata, min_mean=0.0125, max_mean=3, min_disp=0.5)
+sc.pp.highly_variable_genes(adata, min_mean=0.0125, max_mean=3, min_disp=0.5, batch_key='batch')
 
 # Save raw gene expression
 adata.raw = adata
 
 # Filter HVG
+adata.var.highly_variable = adata.var.highly_variable_intersection
 adata = adata[:, adata.var.highly_variable]
 
 # Compute PCA
 sc.tl.pca(adata, svd_solver='arpack')
 
 # Integrate using harmony
-sce.pp.harmony_integrate(adata, 'sample_id', adjusted_basis='X_pca')
+sce.pp.harmony_integrate(adata, 'sample_id', 
+                         adjusted_basis='X_pca', 
+                         max_iter_harmony=30)
 
 # Compute NN
 sc.pp.neighbors(adata, n_neighbors=10, n_pcs=40)
