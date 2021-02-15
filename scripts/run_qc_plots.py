@@ -102,7 +102,7 @@ for condition, samples in meta.items():
         gene_thr = np.quantile(df.n_genes_by_counts, gene_qnt)
         
         # Create QC plots
-        fig, axes = plt.subplots(2,2, figsize=(8,6))
+        fig, axes = plt.subplots(2,2, figsize=(8,6), dpi=150)
         fig.suptitle('QC metrics {0}'.format(sample), fontsize=11)
         axes = axes.flatten()
         
@@ -141,7 +141,7 @@ for condition, samples in meta.items():
 
 
 # Summary plots
-fig = plt.figure(figsize=(8, 6))
+fig = plt.figure(figsize=(8, 6), dpi=150)
 fig.suptitle('Merged QC metrics', fontsize=11)
 gs = fig.add_gridspec(2, 3)
 

@@ -21,6 +21,7 @@ sc.pl.umap(adata, color='pct_counts_mt', ax=ax[3], frameon=False)
 
 # Adjust plots
 fig.tight_layout()
+fig.set_facecolor('white')
 
 # Write to png
 fig.savefig('../plots/proj_integration.png')
