@@ -30,9 +30,9 @@ Then to generate plots run:
 python run_qc_plots.py
 ```
 A QC plot will be generated per sample, example:
-![Example QC single sample](https://github.com/saezlab/scHF_scanpy/tree/main/plots/qc_CK128.png)
+![Example QC single sample](/plots/qc_CK128.png)
 And a summary of all samples:
-![Summary QC](https://github.com/saezlab/scHF_scanpy/tree/main/plots/qc_summary.png)
+![Summary QC](/plots/qc_summary.png)
 
 ### Sample integration
 Steps:
@@ -51,10 +51,10 @@ Then this to plot the results
 python run_integration_plots.py
 ```
 These are the HVG QC plots:
-![Summary QC HVG](https://github.com/saezlab/scHF_scanpy/tree/main/plots/hvg.png)
+![Summary QC HVG](/plots/hvg.png)
 
 These are the integration projections:
-![Integration projections](https://github.com/saezlab/scHF_scanpy/tree/main/plots/proj_integration.png)
+![Integration projections](/plots/proj_integration.png)
 
 ### Clustering
 We run a sequence of different leiden resolutions by:
@@ -67,7 +67,7 @@ python run_clus_plots.py
 ```
 
 We get a projection plot for each resolution with a dotplot using some given markers:
-![Example leiden resolution](https://github.com/saezlab/scHF_scanpy/tree/main/plots/leiden_res_1.0.png)
+![Example leiden resolution](/plots/leiden_res_1.0.png)
 
 ### Annotation
 Once we check the different resolutions, we manually annotate the clusters by running:
@@ -76,6 +76,6 @@ python run_annot.py
 python run_annot_plots.py
 ```
 This is the final annotation:
-![Annotation](https://github.com/saezlab/scHF_scanpy/tree/main/plots/proj_annotation.png)
+![Annotation](/plots/proj_annotation.png)
 
 
