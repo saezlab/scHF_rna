@@ -3,9 +3,10 @@ import scanpy.external as sce
 import numpy as np
 import pandas as pd
 
+
 '''
 Open all samples QC processed files, concatenate them and run integration using 
-harmony
+BKNN
 '''
 
 meta = {
@@ -31,29 +32,36 @@ adata = adatas[0].concatenate(adatas[1:])
 del adatas
 
 # Identify highly-variable genes
-sc.pp.highly_variable_genes(adata, batch_key='batch')
+sc.pp.highly_variable_genes(adata, min_mean=0.0125, max_mean=3, 
+                            min_disp=0.5, batch_key='batch')
 
 # Save raw gene expression
 adata.raw = adata
+adata.uns['hvg']['ngene'] = adata.shape[1]
 
 # Filter HVG. 
-# HVG must be in at least the 75% of the batches
-num_batches = len(np.unique(adata.obs.batch))
-per_batches = 0.75 # Can be changed
-min_batch = np.ceil(num_batches * per_batches)
-adata.var.highly_variable = adata.var.highly_variable_nbatches > min_batch
-adata = adata[:, adata.var.highly_variable]
+# Select top 3000 HVG in as much batches as possible
+# Genes need to be HV in at least 2 batches
+num_hvg_genes = 3000
+batch_msk = np.array(adata.var.highly_variable_nbatches > 1)
+hvg = adata.var[batch_msk].sort_values('highly_variable_nbatches').tail(num_hvg_genes).index
+adata = adata[:, hvg]
+print("Shape:", adata.shape)
+
+# Update QC metrics
+sc.pp.calculate_qc_metrics(adata, qc_vars=['mt'], percent_top=None, log1p=False, inplace=True)
 
 # Compute PCA
 sc.tl.pca(adata, svd_solver='arpack')
 
-# Integrate using harmony
-sce.pp.harmony_integrate(adata, 'sample_id', 
-                         adjusted_basis='X_pca', 
-                         max_iter_harmony=30)
-
+#sce.pp.harmony_integrate(adata, 'batch', 
+#                         adjusted_basis='X_pca', 
+#                         max_iter_harmony=30)
 # Compute NN
-sc.pp.neighbors(adata, n_neighbors=10, n_pcs=40)
+#sc.pp.neighbors(adata, n_neighbors=10, n_pcs=40)
+
+# Integrate using BKNN
+sce.pp.bbknn(adata, batch_key='batch')
 
 # Run UMAP
 sc.tl.umap(adata)
