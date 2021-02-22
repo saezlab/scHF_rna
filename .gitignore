@@ -3,7 +3,6 @@ plot_data/
 qc_data/
 scripts/Untitled.ipynb
 scripts/cache/
-plots/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
