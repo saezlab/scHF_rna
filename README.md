@@ -9,6 +9,8 @@ scanpy
 scrublet
 bbknn
 leidenalg
+scCODA
+seaborn
 ```
 
 Get dissociation genes:

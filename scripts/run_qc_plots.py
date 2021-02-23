@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pickle
 
-from plot_functions import *
+from utils import *
 
 """
 Script to plot different QC metrics after filtering the data.

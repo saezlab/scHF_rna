@@ -4,7 +4,7 @@ import pandas as pd
 
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
-from plot_functions import *
+from utils import *
 
 '''Plot integrated data set summary plots'''
 
