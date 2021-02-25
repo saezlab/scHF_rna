@@ -22,17 +22,18 @@ for ctype in np.unique(markers.Type):
 
 # Plot cell type annotation
 fig = plt.figure(figsize=(12,12), dpi=150)
+fig.suptitle('Cell annotation', fontsize=15)
 gs = fig.add_gridspec(3,2)
 
 ax = fig.add_subplot(gs[0:2,:])
 sc.pl.umap(adata, color='cell_type', ax=ax, show=False, 
-           return_fig=False, frameon=False, legend_loc='on data', size=10)
+           return_fig=False, frameon=False, legend_loc='on data', size=10, title="")
 
 ax = fig.add_subplot(gs[2,:])
 sc.pl.dotplot(adata, marker_genes_dict, 'cell_type', dendrogram=True, ax=ax, show=False, return_fig=False)
 
 fig.tight_layout()
-fig.subplots_adjust(top=0.9)
+fig.subplots_adjust(top=0.95)
 fig.set_facecolor('white')
 
 # Save

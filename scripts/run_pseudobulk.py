@@ -68,9 +68,5 @@ pb_adata.obs['cell_num'] = col_cell_num
 pb_adata.obs['cell_prop'] = col_cell_prop
 pb_adata.var.index = ann_adata.raw.var.index
 
-# Normalize and log transform
-sc.pp.normalize_total(pb_adata, target_sum=1e4)
-sc.pp.log1p(pb_adata)
-
 # Write to file
 pb_adata.write('../qc_data/pseudobulk.h5ad')
