@@ -26,8 +26,6 @@ def get_group_sum_dis(sub_adata):
 # Read AnnData object
 input_path = '../qc_data/pseudobulk.h5ad'
 adata = sc.read_h5ad(input_path)
-sc.pp.normalize_total(adata, target_sum=1e4)
-sc.pp.log1p(adata)
 
 conditions = np.unique(adata.obs['condition'])
 cell_types = np.unique(adata.obs['cell_type'])
@@ -43,6 +41,7 @@ for i,cond_a in enumerate(conditions):
                 # Get a subset per condition and cell type
                 adata_a = adata[(adata.obs['condition']==cond_a)&(adata.obs['cell_type']==cell_type)]
                 adata_b = adata[(adata.obs['condition']==cond_b)&(adata.obs['cell_type']==cell_type)]
+                
                 #  Compute mean within groups as norm factor
                 norm = (get_group_sum_dis(adata_a) + get_group_sum_dis(adata_b)) / \
                 (adata_a.shape[0] + adata_b.shape[0])

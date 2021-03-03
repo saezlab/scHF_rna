@@ -12,6 +12,11 @@ adata = sc.read_h5ad(input_path)
 # Filter out unknown cells
 adata = adata[adata.obs['cell_type'] != 'unknown']
 
+
+#adata.obs['condition'] = adata.obs['condition'].astype('str')
+#adata.obs['condition'][adata.obs['condition'] != 'hf_ckd'] = "other"
+#adata.obs['condition'] = adata.obs['condition'].astype('category').cat.reorder_categories(['other', 'hf_ckd'])
+
 X = []
 col_sample_id = []
 col_condition = []
@@ -68,5 +73,45 @@ pb_adata.obs['cell_num'] = col_cell_num
 pb_adata.obs['cell_prop'] = col_cell_prop
 pb_adata.var.index = ann_adata.raw.var.index
 
+# Set low counts to 0
+pb_adata.X[pb_adata.X <= 2] = 0
+
+def vsn_normalize(arr):
+    import logging
+    import rpy2.rinterface_lib.callbacks
+    rpy2.rinterface_lib.callbacks.logger.setLevel(logging.ERROR)
+    from rpy2.robjects import pandas2ri
+    pandas2ri.activate()
+    import rpy2.robjects as robjects
+    
+    robjects.globalenv['arr'] = arr
+    arr = robjects.r('''
+            library(vsn)
+            arr <- t(arr)
+            arr[is.nan(arr)] = NA
+            fit <- vsnMatrix(arr)
+            arr <- t(vsn::predict(fit,arr))
+            arr[is.na(arr)] <- 0
+            arr
+            ''')
+    return arr
+
+# VSN normalize
+for ctype in np.unique(pb_adata.obs['cell_type']):
+    # Get expression for ctype
+    X = pb_adata.X[pb_adata.obs['cell_type'] == ctype].copy()
+    Xdim = X.shape
+    # Set zeros to nan
+    X[X == 0] = np.nan
+    # Filter genes not expressed in almost all samples
+    msk = np.sum(np.isnan(X), axis=0) < 2
+    X = X[:, msk]
+    # VSN normalize
+    X_norm = vsn_normalize(X)
+    # Set filtered genes expr to 0
+    X = np.zeros(Xdim)
+    X[:,msk] = X_norm
+    pb_adata.X[pb_adata.obs['cell_type'] == ctype] = X
+    
 # Write to file
 pb_adata.write('../qc_data/pseudobulk.h5ad')
