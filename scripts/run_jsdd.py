@@ -47,6 +47,11 @@ for cell_type in cell_types:
                 x_a = sub_adata.X[msk_a].toarray()[0]
                 x_b = sub_adata.X[msk_b].toarray()[0]
                 
+                # Get only genes that have at least some shared expression
+                msk = (~(x_a == 0)) & (~(x_b == 0))
+                x_a = x_a[msk]
+                x_b = x_b[msk]
+                
                 # Get min proportion
                 w_a = sub_adata.obs['cell_prop'][msk_a]
                 w_b = sub_adata.obs['cell_prop'][msk_b]

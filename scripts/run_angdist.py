@@ -42,9 +42,15 @@ for i,cond_a in enumerate(conditions):
                 adata_a = adata[(adata.obs['condition']==cond_a)&(adata.obs['cell_type']==cell_type)]
                 adata_b = adata[(adata.obs['condition']==cond_b)&(adata.obs['cell_type']==cell_type)]
                 
+                # Get all genes that have at least some expression
+                msk = (~(adata_a.X == 0).any(axis=0)) & (~(adata_b.X == 0).any(axis=0))
+                adata_a = adata_a[:,msk]
+                adata_b = adata_b[:,msk]
+                
                 #  Compute mean within groups as norm factor
                 norm = (get_group_sum_dis(adata_a) + get_group_sum_dis(adata_b)) / \
                 (adata_a.shape[0] + adata_b.shape[0])
+                
                 if norm == 0.0:
                     norm = 1
                 # Compute all possible interactions
