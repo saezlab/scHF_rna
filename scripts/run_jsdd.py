@@ -15,6 +15,9 @@ from scipy.spatial.distance import jensenshannon
 input_path = '../qc_data/pseudobulk.h5ad'
 adata = sc.read_h5ad(input_path)
 
+# Load DEG
+df_deg = pd.read_csv('../plot_data/deg/deg.csv')
+
 # Get list samples and cell types
 samples_ids = np.unique(adata.obs['sample_id'])
 conditions = [adata.obs.condition[adata.obs['sample_id'] == sample_id].tolist()[0] for sample_id in samples_ids]
@@ -33,6 +36,12 @@ for cell_type in cell_types:
     jsd_ds = []
     props = []
     
+    # Get genes that are sign DEG in all conditions for this cell type
+    deg = df_deg[df_deg['cell_type']==cell_type]
+    deg = np.unique([deg[deg['condition']==cond].sort_values('pvals').head(100)['names'].tolist() \
+                     for cond in np.unique(deg['condition'])])
+    print(cell_type, len(deg))
+    
     # Compute JDDS for all combinations
     for sample_a in samples_ids:
         for sample_b in samples_ids:
@@ -44,13 +53,13 @@ for cell_type in cell_types:
                 jsd_d = np.nan
                 w = 0
             else:
-                x_a = sub_adata.X[msk_a].toarray()[0]
-                x_b = sub_adata.X[msk_b].toarray()[0]
+                # Get sample objects
+                x_a = sub_adata[msk_a]
+                x_b = sub_adata[msk_b]
                 
-                # Get only genes that have at least some shared expression
-                msk = (~(x_a == 0)) & (~(x_b == 0))
-                x_a = x_a[msk]
-                x_b = x_b[msk]
+               # Filter by DEG
+                x_a = x_a[:,deg].X.toarray()[0]
+                x_b = x_b[:,deg].X.toarray()[0]
                 
                 # Get min proportion
                 w_a = sub_adata.obs['cell_prop'][msk_a]

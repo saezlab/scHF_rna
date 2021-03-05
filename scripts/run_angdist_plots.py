@@ -9,7 +9,7 @@ import seaborn as sns
 plot_data = pickle.load(open("../plot_data/angdist/plot_data.pkl", "rb"))
 
 fig, axes = plt.subplots(2,3, figsize=(12,9), sharey=True, dpi=150)
-fig.suptitle('Transcriptomical shifts', fontsize=15)
+fig.suptitle('Transcriptomic shifts', fontsize=15)
 axes = axes.flatten()
 i = 0
 for k,df in plot_data.items():

@@ -11,6 +11,7 @@ bbknn
 leidenalg
 scCODA
 seaborn
+gseapy
 ```
 
 Get dissociation genes:

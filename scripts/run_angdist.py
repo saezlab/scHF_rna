@@ -27,6 +27,9 @@ def get_group_sum_dis(sub_adata):
 input_path = '../qc_data/pseudobulk.h5ad'
 adata = sc.read_h5ad(input_path)
 
+# Load DEG
+df_deg = pd.read_csv('../plot_data/deg/deg.csv')
+
 conditions = np.unique(adata.obs['condition'])
 cell_types = np.unique(adata.obs['cell_type'])
 
@@ -42,10 +45,14 @@ for i,cond_a in enumerate(conditions):
                 adata_a = adata[(adata.obs['condition']==cond_a)&(adata.obs['cell_type']==cell_type)]
                 adata_b = adata[(adata.obs['condition']==cond_b)&(adata.obs['cell_type']==cell_type)]
                 
-                # Get all genes that have at least some expression
-                msk = (~(adata_a.X == 0).any(axis=0)) & (~(adata_b.X == 0).any(axis=0))
-                adata_a = adata_a[:,msk]
-                adata_b = adata_b[:,msk]
+                # Get genes that are sign DEG in all conditions for this cell type
+                deg = df_deg[df_deg['cell_type']==cell_type]
+                deg = np.unique([deg[deg['condition']==cond].sort_values('pvals').head(100)['names'].tolist() \
+                                 for cond in np.unique(deg['condition'])])
+
+                print(cell_type, len(deg))
+                adata_a = adata_a[:,deg]
+                adata_b = adata_b[:,deg]
                 
                 #  Compute mean within groups as norm factor
                 norm = (get_group_sum_dis(adata_a) + get_group_sum_dis(adata_b)) / \
