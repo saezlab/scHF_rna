@@ -39,4 +39,4 @@ for ctype,ax in zip(np.unique(adata.obs['cell_type']), axes[1:]):
 fig.tight_layout()
 fig.set_facecolor('white')
 
-fig.savefig('../plots/qc_pseudobulk.png')
+fig.savefig('../plots/psbulk_qc.png')

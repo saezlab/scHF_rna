@@ -34,4 +34,4 @@ for condition in conditions:
     fig.tight_layout()
     fig.set_facecolor('white')
     
-    fig.savefig('../plots/ora_{0}.png'.format(condition), bbox_inches='tight')
+    fig.savefig('../plots/psbulk_ora_{0}.png'.format(condition), bbox_inches='tight')

@@ -7,24 +7,6 @@ import matplotlib.pyplot as plt
 input_path = '../plot_data/deg/deg.csv'
 df = pd.read_csv(input_path)
 
-def plot_volcano(name, df, ax, max_num=np.max(np.abs(df['logfoldchanges'])), s=10, fontsize=12):
-    # Get lfc and pvals
-    lfc = df['logfoldchanges']
-    pvals = -np.log10(df['pvals'])
-    
-    # Mask significant genes
-    msk = (pvals > -np.log10(0.05)) & (np.abs(lfc) > 0.5)
-    
-    # Plot scatter
-    ax.set_title(name)
-    ax.scatter(lfc[~msk], pvals[~msk], c='gray', s=s)
-    ax.scatter(lfc[msk], pvals[msk], c='red', s=s)
-    ax.set_xlim(-max_num, max_num)
-    ax.set_xlabel('Logfoldchanges', fontsize=fontsize)
-    ax.set_ylabel('-log10(pvalue)', fontsize=fontsize)
-    ax.set_box_aspect(1)
-
-
 conditions = np.unique(df['condition'])
 cell_types = np.unique(df['cell_type'])
 
@@ -49,7 +31,7 @@ for condition in conditions:
     # Save figure
     fig.tight_layout()
     fig.set_facecolor('white')
-    fig.savefig('../plots/deg_{0}'.format(condition))
+    fig.savefig('../plots/psbulk_deg_{0}'.format(condition))
 
 axes[0].set_visible(False) 
     

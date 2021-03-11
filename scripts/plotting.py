@@ -109,3 +109,25 @@ def stacked_barplot(data, feature_name, ax, cmap=cm.tab20):
     ax.set_xticks(r)
     ax.set_xticklabels(level_names, rotation=45)
     ax.set_ylabel("Proportion")
+
+def volcano(name, lfc, pvals, ax, max_num=None,
+                 lfc_thr=0.5, p_thr=0.05, s=10, fontsize=12):
+    '''Volcano plot from a list of lfc and untrasnformed pvalues'''
+
+    if max_num is None:
+        max_num=np.max(np.abs(lfc))
+    
+    # Transform pvals
+    pvals = -np.log10(pvals)
+    
+    # Mask significant genes
+    msk = (pvals > -np.log10(p_thr)) & (np.abs(lfc) > lfc_thr)
+    
+    # Plot scatter
+    ax.set_title(name)
+    ax.scatter(lfc[~msk], pvals[~msk], c='gray', s=s)
+    ax.scatter(lfc[msk], pvals[msk], c='red', s=s)
+    ax.set_xlim(-max_num, max_num)
+    ax.set_xlabel('LogFC', fontsize=fontsize)
+    ax.set_ylabel('-log10(pvalue)', fontsize=fontsize)
+    ax.set_box_aspect(1)
