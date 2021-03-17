@@ -8,37 +8,43 @@ import os
 input_path = '../qc_data/pseudobulk.h5ad'
 adata = sc.read_h5ad(input_path) 
 
-# Get conditions and remove healthy
-conditions = adata.obs['condition'][adata.obs['condition'] != 'healthy']
+# Get unique conditions and remove healthy
+conditions = np.unique(adata.obs['condition'])
+
+# Get unique cell types
+cell_types = np.unique(adata.obs['cell_type'])
 
 # For each condition and cell type compute DEG and store them in a df
 dfs = []
-for condition in np.unique(conditions):
-    for ctype in np.unique(adata.obs['cell_type']):
-        # Filter by cell type
-        subadata = adata[(adata.obs['cell_type'] == ctype)]
-        # Drop conditions with only one sample
-        subadata = subadata[subadata.obs["condition"].duplicated(keep=False)]
-        # Drop genes that have 0 expression
-        subadata = subadata[:,~(subadata.X == 0).any(axis=0)]
+for cond_a in conditions:
+    for cond_b in conditions:
+        if cond_a != cond_b:
+            for cell_type in cell_types:
+                # Filter by cell type
+                subadata = adata[(adata.obs['cell_type'] == cell_type)]
 
-        # Skip if no samples are available
-        if np.sum(subadata.obs['condition'] == condition) == 0:
-            continue
+                # Drop genes that have 0 expression
+                subadata = subadata[:,~(subadata.X == 0).any(axis=0)]
 
-        # Compute DEG
-        sc.tl.rank_genes_groups(subadata, 'condition', reference='healthy', method='t-test')
+                # Skip if only one sample or less are available
+                if np.sum(subadata.obs['condition'] == cond_a) <= 1 or \
+                   np.sum(subadata.obs['condition'] == cond_b) <= 1:
+                    continue
 
-        # Get df and store it
-        df = sc.get.rank_genes_groups_df(subadata, condition)
-        df['cell_type'] = ctype
-        df['condition'] = condition
-        df.drop('scores', axis=1, inplace=True)
-        dfs.append(df)
+                # Compute DEG
+                sc.tl.rank_genes_groups(subadata, 'condition', groups=[cond_a, cond_b],
+                                        reference=cond_a, method='t-test')
+
+                # Get df and store it
+                df = sc.get.rank_genes_groups_df(subadata, cond_b)
+                df['cell_type'] = cell_type
+                df['contrast'] = '{0}-{1}'.format(cond_b, cond_a)
+                df.drop('scores', axis=1, inplace=True)
+                dfs.append(df)
 
 # Merge all dfs
 df = pd.concat(dfs)
 
 # Save
 os.makedirs('../plot_data/deg/', exist_ok=True)
-df.to_csv('../plot_data/deg/deg.csv', index=False)
+df.to_csv('../plot_data/deg/psbulk_deg.csv', index=False)

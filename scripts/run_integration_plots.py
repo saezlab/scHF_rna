@@ -4,7 +4,7 @@ import pandas as pd
 
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
-from utils import *
+from plotting import plot_ngene_diff, plot_hvg_nbatches, plot_ngenes_vs_counts, plot_sorted_rank
 
 '''Plot integrated data set summary plots'''
 

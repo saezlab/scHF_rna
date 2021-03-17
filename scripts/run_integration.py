@@ -5,8 +5,7 @@ import pandas as pd
 
 
 '''
-Open all samples QC processed files, concatenate them and run integration using 
-BKNN
+Open all samples QC processed files, concatenate them and run integration
 '''
 
 meta = {
@@ -15,6 +14,11 @@ meta = {
     'hf' : ["CK127","CK129","CK135","CK137","CK141"],
     'hf_ckd' : ["CK116","CK126","CK136","CK138"]
 }
+
+# Integration method to use harmony, bbknn, scanorama
+int_method = 'bbknn'
+assert(int_method in ['bbknn', 'harmony', 'scanorama', None])
+
 
 # Open and concatenate all samples
 adatas = []
@@ -52,16 +56,28 @@ print("Shape:", adata.shape)
 sc.pp.calculate_qc_metrics(adata, qc_vars=['mt'], percent_top=None, log1p=False, inplace=True)
 
 # Compute PCA
+sc.pp.scale(adata, max_value=10)
 sc.tl.pca(adata, svd_solver='arpack')
 
-#sce.pp.harmony_integrate(adata, 'batch', 
-#                         adjusted_basis='X_pca', 
-#                         max_iter_harmony=30)
-# Compute NN
-#sc.pp.neighbors(adata, n_neighbors=10, n_pcs=40)
+# Integration
+print('Integration method: {0}'.format(int_method))
 
-# Integrate using BKNN
-sce.pp.bbknn(adata, batch_key='batch')
+if int_method == 'harmony':
+    # Run harmony from previous PCA
+    sce.pp.harmony_integrate(adata, 'batch', 
+                             adjusted_basis='X_pca', 
+                             max_iter_harmony=30)
+    
+    # Compute NN using updated PCA
+    sc.pp.neighbors(adata, n_neighbors=10, n_pcs=40)
+    
+elif int_method == 'bbknn':
+    # Compute NN using BKNN
+    sce.pp.bbknn(adata, batch_key='batch')
+    
+elif int_method == 'scanorama':
+    # Run scanorama from previous PCA
+    sce.pp.scanorama_integrate(adata, 'batch', adjusted_basis='X_pca')
 
 # Run UMAP
 sc.tl.umap(adata)
