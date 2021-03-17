@@ -28,4 +28,4 @@ fig.tight_layout()
 fig.set_facecolor('white')
 
 # Save
-fig.savefig('../plots/angdist.png')
+fig.savefig('../plots/psbulk_angdist.png')

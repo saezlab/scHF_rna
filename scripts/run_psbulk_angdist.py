@@ -5,31 +5,16 @@ import pandas as pd
 import os
 import pickle
 
-
-def cos_sim(a,b):
-    return np.min([np.dot(a,b)/(np.linalg.norm(a)*np.linalg.norm(b)),1])
-
-def ang_dis(a,b):
-    return np.arccos(cos_sim(a,b)) / np.pi
-
-def get_group_sum_dis(sub_adata):
-    # Compute all cumulative distances in an AnnData object
-    cum_dis = 0
-    for i,row_a in enumerate(sub_adata.X.toarray()):
-        for j, row_b in enumerate(sub_adata.X.toarray()):
-            if j < i:
-                # Compute angular distance
-                dis = ang_dis(row_a,row_b)
-                cum_dis += dis
-    return cum_dis
+from utils import cos_sim, ang_dis, get_group_sum_dis
 
 # Read AnnData object
 input_path = '../qc_data/pseudobulk.h5ad'
 adata = sc.read_h5ad(input_path)
 
 # Load DEG
-df_deg = pd.read_csv('../plot_data/deg/deg.csv')
+df_deg = pd.read_csv('../plot_data/deg/psbulk_deg.csv')
 
+# Get unique conditions and cell_types
 conditions = np.unique(adata.obs['condition'])
 cell_types = np.unique(adata.obs['cell_type'])
 
@@ -45,11 +30,10 @@ for i,cond_a in enumerate(conditions):
                 adata_a = adata[(adata.obs['condition']==cond_a)&(adata.obs['cell_type']==cell_type)]
                 adata_b = adata[(adata.obs['condition']==cond_b)&(adata.obs['cell_type']==cell_type)]
                 
-                # Get genes that are sign DEG in all conditions for this cell type
+                # Get union of top 100 genes that are sign DEG per contrasts for a given cell type
                 deg = df_deg[df_deg['cell_type']==cell_type]
-                deg = np.unique([deg[deg['condition']==cond].sort_values('pvals').head(100)['names'].tolist() \
-                                 for cond in np.unique(deg['condition'])])
-
+                deg = np.unique([deg[deg['contrast']==contrast].sort_values('pvals').head(100)['names'].tolist() \
+                                 for contrast in np.unique(deg['contrast'])])
                 print(cell_type, len(deg))
                 adata_a = adata_a[:,deg]
                 adata_b = adata_b[:,deg]
