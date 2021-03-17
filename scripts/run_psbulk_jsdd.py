@@ -6,9 +6,7 @@ import pickle
 import os
 
 from sklearn.manifold import MDS
-
 from scipy.spatial.distance import jensenshannon
-
 
 
 # Read AnnData object
@@ -16,7 +14,7 @@ input_path = '../qc_data/pseudobulk.h5ad'
 adata = sc.read_h5ad(input_path)
 
 # Load DEG
-df_deg = pd.read_csv('../plot_data/deg/deg.csv')
+df_deg = pd.read_csv('../plot_data/deg/psbulk_deg.csv')
 
 # Get list samples and cell types
 samples_ids = np.unique(adata.obs['sample_id'])
@@ -38,8 +36,8 @@ for cell_type in cell_types:
     
     # Get genes that are sign DEG in all conditions for this cell type
     deg = df_deg[df_deg['cell_type']==cell_type]
-    deg = np.unique([deg[deg['condition']==cond].sort_values('pvals').head(100)['names'].tolist() \
-                     for cond in np.unique(deg['condition'])])
+    deg = np.unique([deg[deg['contrast']==contrast].sort_values('pvals').head(100)['names'].tolist() \
+                     for contrast in np.unique(deg['contrast'])])
     print(cell_type, len(deg))
     
     # Compute JDDS for all combinations

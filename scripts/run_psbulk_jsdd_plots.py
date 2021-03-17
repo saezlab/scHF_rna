@@ -44,7 +44,7 @@ fig.legend(handles, labels, loc='right', frameon=False, fontsize=11)
 fig.subplots_adjust(right=0.9)
 fig.set_facecolor('white')
 
-fig.savefig('../plots/jsd_mds_cond.png')
+fig.savefig('../plots/psbulk_jsd_mds.png')
 
 fig, axes = plt.subplots(3, 4, figsize=(12,9), dpi=150, sharex=True, sharey=True)
 fig.suptitle('JSD distances MDS', fontsize=16)
@@ -63,4 +63,4 @@ handles, labels = ax.get_legend_handles_labels()
 fig.legend(handles, labels, loc='right', frameon=False, fontsize=11)
 fig.set_facecolor('white')
 
-fig.savefig('../plots/jsd_distances.png')
+fig.savefig('../plots/psbulk_jsd_dist.png')
