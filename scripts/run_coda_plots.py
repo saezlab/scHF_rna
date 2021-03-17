@@ -3,17 +3,20 @@ import numpy as np
 import pandas as pd
 
 from sccoda.util import cell_composition_data as dat
-from utils import *
+from plotting import stacked_barplot
 
 import matplotlib.pyplot as plt
 import seaborn as sns
 
 # Read AnnData object
-input_path = '../qc_data/integrated.h5ad'
+input_path = '../qc_data/pseudobulk.h5ad'
 adata = sc.read_h5ad(input_path)
 
-# Load proportions
-df = get_count_df(adata, drop=['unknown'])
+# Get scCODA input:
+df = adata.obs.pivot(index=['sample_id','condition'], columns='cell_type', values='cell_num')
+df[np.isnan(df)] = 0
+df = df.rename(columns=str).reset_index()
+df.columns.name = None
 data = dat.from_pandas(df, covariate_columns=['sample_id', 'condition'])
 
 # Load eff df

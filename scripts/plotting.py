@@ -43,10 +43,12 @@ def plot_ncell_diff(data, ax, labels, n_rem, fontsize=11):
     ax.set_xlabel('Number of cells removed', fontsize=fontsize)
     ax.tick_params(axis='x', rotation=45)
     
+    
 def plot_ngene_diff(adata, ax, fontsize=11):
     ax.set_title('Num genes filtered', fontsize=fontsize)
     ax.bar(x="Before", height=adata.uns['hvg']['ngene'])
     ax.bar(x="After", height=adata.shape[1])
+    
     
 def plot_hvg_nbatches(data, ax, fontsize=11):
     for nbatches in np.flip(np.unique(data.highly_variable_nbatches)):
@@ -54,30 +56,14 @@ def plot_hvg_nbatches(data, ax, fontsize=11):
         ax.bar(str(nbatches), num, color="gray")
     ax.set_title('Num shared HVG by num samples',fontsize=fontsize)
     
+    
 def plot_sorted_rank(data, col, ax, fontsize=11):
     xdim = np.arange(len(data))
     ysort = np.flip(np.sort(data[col]))
     ax.set_title('Ranked {0}'.format(col), fontsize=fontsize)
     ax.plot(xdim, ysort, c='grey')
-    
-def get_count_df(adata, drop=[]):
-    df = adata.obs[['sample_id', 'condition', 'cell_type']]
-    # Count per sample and per cell type
-    num_dict = dict()
-    cell_types = np.unique(df['cell_type'])
-    for _,row in df.iterrows():
-        sample_id = row['sample_id']
-        condition = row['condition']
-        cell_type = row['cell_type']
-        num_dict.setdefault(sample_id, {'condition':condition})
-        num_dict[sample_id].setdefault(cell_type, 0)
-        num_dict[sample_id][cell_type] += 1
-    # Transform to df
-    df = pd.DataFrame(num_dict).T.fillna(value=0).rename_axis("sample_id").reset_index()
-    if len(drop) != 0:
-        df = df.drop(drop, axis=1)
-    return df
 
+    
 def stacked_barplot(data, feature_name, ax, cmap=cm.tab20):
     # cell type names
     type_names = data.var.index
