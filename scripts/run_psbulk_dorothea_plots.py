@@ -2,55 +2,16 @@ import numpy as np
 import pandas as pd
 
 import matplotlib.pyplot as plt
+from plotting import dotplot
 
 
-def dotplot(ref, df, num=30, fontsize=9, figsize=(12,6)):
-    # Define figure
-    fig, ax = plt.subplots(1,1, dpi=150, figsize=figsize)
-    ax.set_title(ref, fontsize=fontsize+5)
-    
-    # Add grid and set it to background
-    ax.grid(True)
-    ax.set_axisbelow(True)
-    
-    # Dot plot
-    max_num = np.max(np.abs(df['coeff']))
-    sc = ax.scatter(
-        x=df['name'],
-        y=df['ctype.cond'],
-        c=df['coeff'],
-        s=-np.log(df['pvals']) * num,
-        cmap='coolwarm',
-        vmax=max_num,
-        vmin=-max_num,
-        edgecolor=['black' if pval < 0.05 else 'white' for pval in df['pvals']]
-    )
-    
-    # Format dot plot ticks
-    ax.tick_params(axis='x', rotation=90, labelsize=fontsize)
-    ax.tick_params(axis='y', labelsize=fontsize)
-
-    # Plot pvalue dot sizes legend
-    handles, labels = sc.legend_elements("sizes", num=4)
-    labels = ['$\\mathdefault{'+'{0:.2f}'.format(int(label.split('{')[1].split('}')[0])/num)+'}$' for label in labels]
-    ax.legend(handles, labels, loc="upper left", bbox_to_anchor=(1,1), frameon=False, title='-log(pvalue)')
-    
-    # Add color bar
-    cax = fig.add_axes([0.945, 0.25, 0.025, 0.35])
-    cbar = fig.colorbar(sc, cax=cax, orientation='vertical')
-    cbar.ax.set_title('Mean change')
-    
-    # Format figure
-    fig.tight_layout()
-    fig.set_facecolor('white')
-    
-    return fig
-
-
-# Read teste pathways
+# Read tested TFs
 results = pd.read_csv('../plot_data/func/dorothea.csv')
 results['ctype.cond'] = results['cell_type'] + ' ' + results['cond']
 refs = np.unique(results['ref'])
+
+# Filter by cell type
+cell_type = 'fibroblast'
 
 for ref in refs:
     # Filter by a reference condition
@@ -58,7 +19,7 @@ for ref in refs:
     
     # Get significant elements
     sign = df[df['pvals'] < 0.05]
-    sign = sign[sign['cell_type'] == 'fibroblast'].head(40)
+    sign = sign[sign['cell_type'] == cell_type].head(50)
     names = np.unique(sign['name'].tolist())
     ctconds = np.unique(sign['ctype.cond'].tolist())
     
