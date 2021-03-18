@@ -159,3 +159,12 @@ def dotplot(ref, df, num=30, fontsize=9, figsize=(12,6)):
     fig.set_facecolor('white')
     
     return fig
+
+def plot_ora(name, df, ax, top=10, fontsize=11):
+    df = df.sort_values('adj_pvalues', ascending=True).head(top)
+    names = np.flip(df['descr'].tolist())
+    pvals = np.flip(-np.log10(df['adj_pvalues']))
+    ax.barh(names, pvals, color='gray')
+    ax.axvline(x=-np.log10(0.05), c='black', ls='--')
+    ax.set_xlabel('-log10(adj_pval)', fontsize=fontsize)
+    ax.set_title(name, fontsize=fontsize)
