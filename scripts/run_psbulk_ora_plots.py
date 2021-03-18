@@ -9,7 +9,7 @@ from plotting import plot_ora
 input_path = '../plot_data/deg/ora.csv'
 df = pd.read_csv(input_path)
 
-# Get different conditions and cell types
+# Get unique contrasts
 contrasts = np.unique(df['contrast'])
 
 for contrast in contrasts:

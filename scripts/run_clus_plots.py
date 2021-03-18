@@ -24,8 +24,9 @@ for ctype in np.unique(markers.Type):
 ress = [name for name in adata.obs.columns if name.startswith('leiden_res_')]
 
 for res in ress:
+    print(res)
     # Plot projection and dotplot
-    fig = plt.figure(figsize=(12,12), dpi=150)
+    fig = plt.figure(figsize=(12,14), dpi=150)
     gs = fig.add_gridspec(3,2)
 
     ax = fig.add_subplot(gs[0:2,:])

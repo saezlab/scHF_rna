@@ -29,7 +29,7 @@ for i in range(len(cell_types)):
     for cond in np.unique(conditions):
         msk = conditions == cond
         coord = coords[i][msk]
-        ax.scatter(coord[:,0], coord[:,1], label=cond, s=10)
+        ax.scatter(coord[:,0], coord[:,1], label=cond, s=20)
         ax.set_box_aspect(1)
         ax.set_xticks([])
         ax.set_yticks([])
@@ -55,7 +55,8 @@ for i in range(len(cell_types)):
     ctype = cell_types[i]
     ax.set_title(ctype)
     jsd = jsds[i]
-    sns.heatmap(jsd, ax=ax, square=True, xticklabels=samples_ids, yticklabels=samples_ids,
+    order = np.argsort(conditions)
+    sns.heatmap(jsd[order][:,order], ax=ax, square=True, xticklabels=samples_ids[order], yticklabels=samples_ids[order],
                cbar_kws={"shrink": .5}, cmap='viridis', robust=True)
         
 fig.tight_layout()

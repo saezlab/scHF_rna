@@ -16,9 +16,9 @@ cell_types = np.unique(adata.obs['cell_type'])
 
 # For each condition and cell type compute DEG and store them in a df
 dfs = []
-for cond_a in conditions:
-    for cond_b in conditions:
-        if cond_a != cond_b:
+for i,cond_a in enumerate(conditions):
+    for j,cond_b in enumerate(conditions):
+        if j < i:
             for cell_type in cell_types:
                 # Filter by cell type
                 subadata = adata[(adata.obs['cell_type'] == cell_type)]
