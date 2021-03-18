@@ -49,13 +49,7 @@ for sample in samples:
     # Plot ngenes
     plot_ngenes_vs_counts(df, axes[1], gene_thr=gene_thr)
 
-    # Plot doublet score
-    plot_doublet_scores(df, axes[2], doublet_thr=doublet_thr)
-
-    # Plot diss score
-    plot_diss_scores(df, axes[3], diss_thr=diss_thr)
-
-    # Plot diff cells
+    # Plot lost cells
     labels = ['MT', 'Gene', 'Doublet', 'Diss', 'Total']
     msks = np.array([
         df.pct_counts_mt > mt_thr,
@@ -66,10 +60,27 @@ for sample in samples:
     msks = np.vstack((msks, [np.sum(msks, axis=0) > 0]))
     n_rem = np.sum(msks, axis=1)
     total_n_rem += n_rem
-    plot_ncell_diff(df, axes[4], labels=labels, n_rem=n_rem)
+    plot_ncell_diff(df, axes[2], labels=labels, n_rem=n_rem)
+    
+    # Plot doublet score
+    plot_doublet_scores(df, axes[3], doublet_thr=doublet_thr)
 
+    # Plot diss score
+    plot_diss_scores(df, axes[4], diss_thr=diss_thr)
+    
+    # Filter
+    msk = (df.n_genes_by_counts < gene_thr) & \
+      (df.pct_counts_mt < mt_thr) &  \
+      (df.doublet_score < doublet_thr) & \
+      (df.diss_score < diss_thr)
+    df = df[msk]
+
+    # Plot diff cells
+    pd.DataFrame([[sample, len(msk), sum(msk)]], 
+                 columns=["Sample ID", "Before", "After"]).plot.bar(x=0, width=0.5, ax=axes[5])
+    axes[5].set_title('Lost cells', fontsize=11)
+    
     # Adjust plots
-    axes[5].axis('off')
     fig.tight_layout()
     fig.subplots_adjust(top=0.88)
     fig.set_facecolor('white')
@@ -77,14 +88,7 @@ for sample in samples:
     # Write to png
     fig.savefig('../plots/qc_{0}.png'.format(sample))
 
-    # Filter and append
-    msk = (df.n_genes_by_counts < gene_thr) & \
-      (df.pct_counts_mt < mt_thr) &  \
-      (df.doublet_score < doublet_thr) & \
-      (df.diss_score < diss_thr)
-
-    df = df[msk]
-
+    # Append
     total_df = total_df.append(df, ignore_index=True)
     summary_df.append([sample, len(msk), sum(msk)])
         
@@ -104,6 +108,7 @@ plot_doublet_scores(total_df, axes[3], doublet_thr=np.nan)
 plot_diss_scores(total_df, axes[4], diss_thr=np.nan)
 
 pd.DataFrame(summary_df, columns=["Sample ID", "Before", "After"]).plot.bar(x=0, ax=axes[5])
+axes[5].set_title('Lost cells', fontsize=11)
 
 fig.tight_layout()
 fig.subplots_adjust(top=0.88)

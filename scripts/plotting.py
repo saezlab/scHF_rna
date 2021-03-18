@@ -40,7 +40,7 @@ def plot_ncell_diff(data, ax, labels, n_rem, fontsize=11):
     # Plot Barplot
     for label, n in zip(labels, n_rem):
         ax.bar(label, n)
-    ax.set_xlabel('Number of cells removed', fontsize=fontsize)
+    ax.set_title('Cells removed per filter', fontsize=fontsize)
     ax.tick_params(axis='x', rotation=45)
     
     
