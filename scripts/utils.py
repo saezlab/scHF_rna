@@ -40,3 +40,35 @@ def get_group_sum_dis(sub_adata):
                 dis = ang_dis(row_a,row_b)
                 cum_dis += dis
     return cum_dis
+
+def lm(data, formula='y ~ x'):
+    '''
+    Builds a one covariable linear model and returns its coeff and pval
+    '''
+    import statsmodels.api as sm
+    model = sm.OLS.from_formula(formula, data).fit()
+    coeff = model.params[1]
+    pval = model.pvalues[1]
+    return coeff, pval
+
+def rank_func_feature(adata, name, cond_a, cond_b, func):
+    '''
+    Computes differences of functional features across two conditions
+    '''
+    # Filter by conditions to test
+    msk = (adata.obs['condition'] == cond_a) | (adata.obs['condition'] == cond_b)
+    conds = adata.obs['condition'][msk]
+    
+    # Reorder conditions
+    conds = conds.astype(str).astype('category')
+    conds = conds.cat.reorder_categories([cond_a, cond_b])
+
+    # Create input OLS: predict func value (y) by condition (x)
+    data = pd.DataFrame()
+    data['x'] = conds
+    data['y'] = adata.obsm[func][name]
+
+    # Build lm model
+    coeff, pval = lm(data)
+    
+    return coeff, pval
