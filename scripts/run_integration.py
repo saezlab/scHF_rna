@@ -8,28 +8,26 @@ import pandas as pd
 Open all samples QC processed files, concatenate them and run integration
 '''
 
-meta = {
-    'healthy' : ["CK114","CK115","CK139","CK140"],
-    'acidosis' : ["CK128"],
-    'hf' : ["CK127","CK129","CK135","CK137","CK141"],
-    'hf_ckd' : ["CK116","CK126","CK136","CK138"]
-}
+# Load meta data
+meta = pd.read_csv('../data/metadata.csv')
+samples = np.unique(meta['sample_id'])
 
-# Integration method to use harmony, bbknn, scanorama
+# Integration method to use harmony, bbknn or scanorama
 int_method = 'bbknn'
 assert(int_method in ['bbknn', 'harmony', 'scanorama', None])
 
 
 # Open and concatenate all samples
 adatas = []
-for condition, samples in meta.items():
-    for sample_id in samples:
-        print(sample_id)
-        input_path = '../qc_data/{0}.h5ad'.format(sample_id)
-        adata = sc.read_h5ad(input_path)
-        adata.obs['sample_id'] = [sample_id]*adata.n_obs
-        adata.obs['condition'] = [condition]*adata.n_obs
-        adatas.append(adata)
+for _, row in meta.iterrows():
+    sample_id = row['sample_id']
+    condition = row['condition']
+    print(sample_id)
+    input_path = '../qc_data/{0}.h5ad'.format(sample_id)
+    adata = sc.read_h5ad(input_path)
+    adata.obs['sample_id'] = [sample_id]*adata.n_obs
+    adata.obs['condition'] = [condition]*adata.n_obs
+    adatas.append(adata)
 
 # Merge objects and delete list
 adata = adatas[0].concatenate(adatas[1:])
