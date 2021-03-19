@@ -135,3 +135,38 @@ def ORA(g_lst, db):
     df['adj_pvalues'] = multipletests(col_pvalues, method='fdr_bh')[1]
         
     return df
+
+def read_SummarizedExperiment(file_path, atlas_name, ann_cells):
+    '''
+    Gets expression df from SUmmarizedExperiment list
+    '''
+    import logging
+    import rpy2.rinterface_lib.callbacks
+    rpy2.rinterface_lib.callbacks.logger.setLevel(logging.ERROR)
+    from rpy2.robjects import pandas2ri
+    pandas2ri.activate()
+    import rpy2.robjects as robjects
+    
+    import scanpy as sc
+    from anndata import AnnData
+    
+    robjects.globalenv['atlas_name'] = atlas_name
+    robjects.globalenv['ann_cells'] = ann_cells
+    robjects.globalenv['file_path'] = file_path
+    expr_df = robjects.r('''
+            data <- readRDS('../qc_data/hca_pseudobulk.rds')
+            expr_df <- data[[atlas_name]][[ann_cells]]@assays@data@listData[["sum"]]
+            as.data.frame(expr_df)
+            ''')
+    
+    # Transpose and as int
+    expr_df = expr_df.astype(np.int).T
+    
+    # Generate AnnData
+    atlas = AnnData(np.array(expr_df), obs=pd.DataFrame(index=expr_df.index), 
+                    var=pd.DataFrame(index=expr_df.columns))
+    
+    # Filter genes
+    sc.pp.filter_genes(atlas, min_cells=1)
+    
+    return atlas

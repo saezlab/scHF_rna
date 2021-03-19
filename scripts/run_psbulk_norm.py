@@ -71,6 +71,9 @@ pb_adata.obs['cell_num'] = col_cell_num
 pb_adata.obs['cell_prop'] = col_cell_prop
 pb_adata.var.index = ann_adata.raw.var.index
 
+# Store raw counts
+pb_adata.raw = pb_adata
+
 # Set low counts to 0
 pb_adata.X[pb_adata.X <= 2] = 0
 
