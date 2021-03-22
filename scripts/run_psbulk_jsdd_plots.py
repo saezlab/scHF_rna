@@ -37,6 +37,8 @@ for i in range(len(cell_types)):
         ax.set_ylim(-max_num,max_num)
         ax.set_xlabel('MDS 1')
         ax.set_ylabel('MDS 2')
+        ax.axvline(x=0, alpha=0.25, color='grey', linestyle='--', zorder=0)
+        ax.axhline(y=0, alpha=0.25, color='grey', linestyle='--', zorder=0)
         
 fig.tight_layout()
 handles, labels = ax.get_legend_handles_labels()
