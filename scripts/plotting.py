@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
+import seaborn as sns
 from matplotlib import cm
 
 '''Plotting functions'''
@@ -118,41 +119,43 @@ def volcano(name, lfc, pvals, ax, max_num=None,
     ax.set_ylabel('-log10(pvalue)', fontsize=fontsize)
     ax.set_box_aspect(1)
     
-def dotplot(ref, df, num=30, fontsize=9, figsize=(12,6)):
+def dotplot(title, x, y, c, s, size_title, color_title, cmap='coolwarm', edgecolor=None, num=30, fontsize=9, figsize=(12,6)):
     # Define figure
     fig, ax = plt.subplots(1,1, dpi=150, figsize=figsize)
-    ax.set_title(ref, fontsize=fontsize+5)
+    ax.set_title(title, fontsize=fontsize+5)
     
     # Add grid and set it to background
     ax.grid(True)
     ax.set_axisbelow(True)
     
     # Dot plot
-    max_num = np.max(np.abs(df['coeff']))
-    sc = ax.scatter(
-        x=df['name'],
-        y=df['ctype.cond'],
-        c=df['coeff'],
-        s=-np.log(df['pvals']) * num,
-        cmap='coolwarm',
+    max_num = np.max(np.abs(c))
+    scatter = ax.scatter(
+        x=x,
+        y=y,
+        c=c,
+        s=s * num,
+        cmap=cmap,
         vmax=max_num,
         vmin=-max_num,
-        edgecolor=['black' if pval < 0.05 else 'white' for pval in df['pvals']]
+        edgecolor=edgecolor
     )
     
     # Format dot plot ticks
     ax.tick_params(axis='x', rotation=90, labelsize=fontsize)
     ax.tick_params(axis='y', labelsize=fontsize)
+    ax.margins(y=0.2)
 
     # Plot pvalue dot sizes legend
-    handles, labels = sc.legend_elements("sizes", num=4)
-    labels = ['$\\mathdefault{'+'{0:.2f}'.format(int(label.split('{')[1].split('}')[0])/num)+'}$' for label in labels]
-    ax.legend(handles, labels, loc="upper left", bbox_to_anchor=(1,1), frameon=False, title='-log(pvalue)')
+    handles, labels = scatter.legend_elements("sizes", num=4)
+    labels = ['$\\mathdefault{'+'{0}'.format(int(int(label.split('{')[1].split('}')[0])/num))+'}$' for label in labels]
+
+    ax.legend(handles, labels, loc="upper left", bbox_to_anchor=(1,1), frameon=False, title=size_title)
     
     # Add color bar
     cax = fig.add_axes([0.945, 0.25, 0.025, 0.35])
-    cbar = fig.colorbar(sc, cax=cax, orientation='vertical')
-    cbar.ax.set_title('Mean change')
+    cbar = fig.colorbar(scatter, cax=cax, orientation='vertical')
+    cbar.ax.set_title(color_title)
     
     # Format figure
     fig.tight_layout()
@@ -168,3 +171,22 @@ def plot_ora(name, df, ax, top=10, fontsize=11):
     ax.axvline(x=-np.log10(0.05), c='black', ls='--')
     ax.set_xlabel('-log10(adj_pval)', fontsize=fontsize)
     ax.set_title(name, fontsize=fontsize)
+    
+def corr(name, x, y, ax, fontsize=11):
+    from scipy import stats
+    corr, _ = stats.spearmanr(x, y)
+    ax.scatter(x, y, c='gray', s=5)
+    ax.set_title('{0} | corr: {1}'.format(name, '{:.2f}'.format(corr)), fontsize=fontsize)
+    
+def violins(arr, meta, ax):
+    data = arr.copy()
+    data[data==0] = np.nan
+    sns.violinplot(x=data.melt().variable, 
+                   y=np.log2(data.melt().value), 
+                   hue=meta.loc[data.melt().variable].condition.values)
+    
+def proj(x, y, ax):
+    for label in np.unique(y):
+        m = y == label
+        ax.scatter(x[m,0], x[m,1], label=label)
+        ax.legend()

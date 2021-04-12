@@ -4,6 +4,7 @@ plot_data/
 qc_data/
 scripts/Untitled.ipynb
 scripts/cache/
+data/GSE160145_*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
