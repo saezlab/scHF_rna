@@ -144,7 +144,7 @@ def dotplot(title, x, y, c, s, size_title, color_title, cmap='coolwarm', edgecol
     # Format dot plot ticks
     ax.tick_params(axis='x', rotation=90, labelsize=fontsize)
     ax.tick_params(axis='y', labelsize=fontsize)
-    ax.margins(y=0.2)
+    ax.margins(y=0.05)
 
     # Plot pvalue dot sizes legend
     handles, labels = scatter.legend_elements("sizes", num=4)

@@ -28,7 +28,7 @@ def cos_sim(a,b):
     return np.min([np.dot(a,b)/(np.linalg.norm(a)*np.linalg.norm(b)),1])
 
 def ang_dis(a,b):
-    return np.arccos(cos_sim(a,b)) / np.pi
+    return 1 - cos_sim(a,b)#np.arccos(cos_sim(a,b)) / np.pi
 
 def get_group_sum_dis(sub_adata):
     # Compute all cumulative distances in an AnnData object
@@ -203,12 +203,12 @@ def limma_fit(X, design, contr_matrix):
             fit <- lmFit(X, design)
             fit2 <- contrasts.fit(fit, contr_matrix)
             fit2 <- eBayes(fit2)
-            coefs <- as.data.frame(fit2$coefficients)
+            tvals <- as.data.frame(fit2$t)
             pvals <- as.data.frame(fit2$p.value)
-            list(coefs, pvals)
+            list(tvals, pvals)
             ''')
-    coefs, pvals = x[0], x[1]
-    df = coefs.melt(ignore_index=False, value_name='logfoldchanges', var_name='contrast')
+    tvals, pvals = x[0], x[1]
+    df = tvals.melt(ignore_index=False, value_name='logfoldchanges', var_name='contrast')
     df['pvals'] = pvals.melt(ignore_index=False, value_name='pvals', var_name='contrast')['pvals']
     df = df.reset_index()
     df.columns = ['names', 'contrast', 'logfoldchanges', 'pvals']

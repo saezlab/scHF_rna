@@ -5,32 +5,26 @@ import matplotlib.pyplot as plt
 
 from plotting import dotplot
 
+# Read progeny results
+results = pd.read_csv('../plot_data/func/progeny.csv').sort_values(['names', 'cell_type'])
 
+# Get unique contrasts
+contrasts = np.unique(results.contrast)
 
-# Read teste pathways
-results = pd.read_csv('../plot_data/func/progeny.csv')
-results['ctype.cond'] = results['cell_type'] + ' ' + results['cond']
-refs = np.unique(results['ref'])
-
-for ref in refs:
-    # Filter by a reference condition
-    df = results[(results['ref'] == ref)]
-    
-    # Get significant elements
-    sign = df[df['pvals'] < 0.05]
-    names = np.unique(sign['name'].tolist())
-    ctconds = np.unique(sign['ctype.cond'].tolist())
-    
-    # Filter by combination of significant cell type and condition
-    msk_ctconds = np.array([ctcond in ctconds for ctcond in df['ctype.cond'].tolist()])
-    msk_names = np.array([name in names for name in df['name'].tolist()])
-    df = df[msk_ctconds * msk_names]
-    msk = df['pvals'] > 0.05
-    
-    # Hide non significant
-    df['pvals'].loc[msk] = 1
-    df['coeff'].loc[msk] = 0
+for contrast in contrasts:
+    # Subset by contrast
+    df = results[results.contrast == contrast]
     
     # Plot dot plot
-    fig = dotplot(ref, df)
-    fig.savefig('../plots/psbulk_progeny_{0}.png'.format(ref), bbox_inches='tight')
+    fig = dotplot(title=contrast,
+              x=df['names'],
+              y=df['cell_type'],
+              c=df['logfoldchanges'],
+              s=-np.log(df['pvals']),
+              size_title='-log(pvalue)', 
+              color_title='Mean change',
+              edgecolor=['black' if pval < 0.05 else 'white' for pval in df['pvals']]
+             )
+    
+    # Save
+    fig.savefig('../plots/psbulk_progeny_{0}.png'.format(contrast), bbox_inches='tight')

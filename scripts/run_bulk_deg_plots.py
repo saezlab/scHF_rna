@@ -9,16 +9,16 @@ from plotting import dotplot
 # Read DEG df
 input_path = '../plot_data/deg/psbulk_deg.csv'
 df = pd.read_csv(input_path).set_index('names')
-df['logfoldchanges'] = -df['logfoldchanges']
-df['contrast'] = ['-'.join(contrast.split('-')[::-1]) for contrast in df['contrast']]
 
+
+num_deg = 500
 input_path = '../plot_data/deg/reheat_deg.csv'
-rh = pd.read_csv(input_path).head(500)
+rh = pd.read_csv(input_path).head(num_deg)
 rh.columns = ['names', 'logfoldchanges']
 rh = rh.set_index('names')
 
 input_path = '../plot_data/deg/bulk_deg.csv'
-bf = pd.read_csv(input_path).groupby('contrast').head(500).set_index('names')
+bf = pd.read_csv(input_path).groupby('contrast').head(num_deg).set_index('names')
 
 def get_contrast_corr(df_a, df_b, col_name='logfoldchanges'):
     from scipy import stats
@@ -62,7 +62,7 @@ fig = dotplot(
         num=0.75,
         figsize=(9,4)
        )
-fig.savefig('../plots/bulk_ReHeat')
+fig.savefig('../plots/bulk_ReHeat', bbox_inches='tight')
 
 # Contrasts
 for contrast in np.unique(bf.contrast):
@@ -77,4 +77,4 @@ for contrast in np.unique(bf.contrast):
             num=0.75,
             figsize=(9,4)
            )
-    fig.savefig('../plots/bulk_{0}'.format(contrast))
+    fig.savefig('../plots/bulk_{0}'.format(contrast), bbox_inches='tight')

@@ -4,35 +4,55 @@ import pandas as pd
 
 import progeny
 import os
-from utils import lm, rank_func_feature
+
+from utils import get_design, get_contrast, limma_fit
+
 
 # Read AnnData object
 input_path = '../qc_data/pseudobulk.h5ad'
 adata = sc.read_h5ad(input_path)
 
-cell_types = np.unique(adata.obs['cell_type'])
+# Get unique conditions
 conditions = np.unique(adata.obs['condition'])
 
-# Define functional name progeny
-func = 'progeny'
-results = []
-for cell_type in cell_types:
-    # SUbset by cell type and run progeny
-    subadata = adata[adata.obs['cell_type'] == cell_type]
-    progeny.run(subadata, scale=True, organism='Human', top=100)
-    names = subadata.obsm[func].columns
-    for i,cond_a in enumerate(conditions):
-        for j,cond_b in enumerate(conditions):
-            if cond_a != cond_b:
-                for name in names:
-                    # For each pathway, compute significant differences in mean (linear model)
-                    coeff, pval = rank_func_feature(subadata, name, cond_a, cond_b, func)
-                    result = [cell_type, cond_a, cond_b, name, coeff, pval]
-                    results.append(result)
+# Get unique cell types
+cell_types = np.unique(adata.obs['cell_type'])
 
-# Transform to df
-results = pd.DataFrame(results, columns=['cell_type', 'ref', 'cond', 'name', 'coeff', 'pvals']).sort_values('pvals')
+### Contrasts to test ###
+
+contr_dict = {
+    'hf-healthy' : ['hf','healthy'],
+    'hf_ckd-healthy' : ['hf_ckd','healthy'],
+    'hf_ckd-hf' : ['hf_ckd','hf']
+}
+
+###
+
+# Load progeny model
+model = progeny.getModel(organism='Human', top=1000)
+
+dfs = []
+for cell_type in cell_types:
+    # Filter by cell type
+    subadata = adata[(adata.obs['cell_type'] == cell_type),]
+    
+    # Compute activities
+    progeny.run(subadata, model, center=False, scale=True, use_raw=False)
+    
+    # Compute DAP
+    subadata.obs['condition'] = subadata.obs['condition'].astype(str)
+    design = get_design(subadata.obs, 'condition')
+    contr_matrix = get_contrast(design, contr_dict)
+    data = progeny.extract(subadata)
+    data = pd.DataFrame(data.X.T, index=data.var.index, columns=data.obs.index)
+    print(data)
+    df = limma_fit(data, design, contr_matrix).sort_values(['contrast', 'pvals'])
+    df['cell_type'] = cell_type
+    dfs.append(df)
+    
+# Merge all dfs
+df = pd.concat(dfs)
 
 # Save
 os.makedirs('../plot_data/func/', exist_ok=True)
-results.to_csv('../plot_data/func/progeny.csv', index=False)
+df.to_csv('../plot_data/func/progeny.csv', index=False)

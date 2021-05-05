@@ -4,36 +4,55 @@ import pandas as pd
 
 import dorothea
 import os
-from utils import lm, rank_func_feature
+
+from utils import get_design, get_contrast, limma_fit
+
 
 # Read AnnData object
 input_path = '../qc_data/pseudobulk.h5ad'
 adata = sc.read_h5ad(input_path)
 
-cell_types = np.unique(adata.obs['cell_type'])
+# Get unique conditions
 conditions = np.unique(adata.obs['condition'])
 
+# Get unique cell types
+cell_types = np.unique(adata.obs['cell_type'])
 
-func = 'dorothea'
-# Read Dorothea Regulons for Human
-dorothea_hs = dorothea.load_regulons(['A', 'B', 'C'])
+### Contrasts to test ###
 
-results = []
+contr_dict = {
+    'hf-healthy' : ['hf','healthy'],
+    'hf_ckd-healthy' : ['hf_ckd','healthy'],
+    'hf_ckd-hf' : ['hf_ckd','hf']
+}
+
+###
+
+# Get dorothea model
+model = dorothea.load_regulons()
+
+# Compute activities
+dorothea.run(adata, model, center=True, norm=True, scale=True, num_perm=100, use_raw=False)
+
+dfs = []
 for cell_type in cell_types:
-    subadata = adata[adata.obs['cell_type'] == cell_type]
-    dorothea.run_scira(subadata, dorothea_hs, norm='c', scale=True)
-    names = subadata.obsm[func].columns
-    for i,cond_a in enumerate(conditions):
-        for j,cond_b in enumerate(conditions):
-            if cond_a != cond_b:
-                for name in names:
-                    coeff, pval = rank_func_feature(subadata, name, cond_a, cond_b, func)
-                    result = [cell_type, cond_a, cond_b, name, coeff, pval]
-                    results.append(result)
+    # Filter by cell type
+    subadata = adata[(adata.obs['cell_type'] == cell_type)]
+    
+    # Compute DAP
+    subadata.obs['condition'] = subadata.obs['condition'].astype(str)
+    design = get_design(subadata.obs, 'condition')
+    contr_matrix = get_contrast(design, contr_dict)
+    data = dorothea.extract(subadata)
+    data = pd.DataFrame(data.X.T, index=data.var.index, columns=data.obs.index)
+    df = limma_fit(data, design, contr_matrix).sort_values(['contrast', 'pvals'])
+    df['cell_type'] = cell_type
+    dfs.append(df)
 
-# Transform to df
-results = pd.DataFrame(results, columns=['cell_type', 'ref', 'cond', 'name', 'coeff', 'pvals']).sort_values('pvals')
+# Merge all dfs
+df = pd.concat(dfs)
 
 # Save
 os.makedirs('../plot_data/func/', exist_ok=True)
-results.to_csv('../plot_data/func/dorothea.csv', index=False)
+df.to_csv('../plot_data/func/dorothea.csv', index=False)
+adata.obsm['dorothea'].to_csv('../plot_data/func/dorothea_act.csv', index=True, header=True)

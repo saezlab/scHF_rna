@@ -36,7 +36,7 @@ for cell_type in cell_types:
     
     # Get genes that are sign DEG in all conditions for this cell type
     deg = df_deg[df_deg['cell_type']==cell_type]
-    deg = np.unique([deg[deg['contrast']==contrast].sort_values('pvals').head(100)['names'].tolist() \
+    deg = np.unique([deg[deg['contrast']==contrast].sort_values('pvals').head(500)['names'].tolist() \
                      for contrast in np.unique(deg['contrast'])])
     print(cell_type, len(deg))
     

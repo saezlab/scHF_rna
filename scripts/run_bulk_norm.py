@@ -13,8 +13,10 @@ samples_filter = [] #['CAD10', 'N15', 'RF17']
 ###
 
 # Read data
-meta = pd.read_csv('../data/bulk_metadata.csv', index_col=0)
-adata = pd.read_csv('../data/GSE160145_RNA_seq.txt', sep='\t', index_col=0)
+meta = pd.read_csv('../data/metadata.csv')
+meta = meta[meta.bulk_id != 'None']
+meta.index = meta.bulk_id.values
+adata = pd.read_csv('../data/GSE160145.csv', index_col=0)
 adata = adata[meta.index]
 
 # Create AnnData object
