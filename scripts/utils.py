@@ -27,19 +27,21 @@ def vsn_normalize(arr):
 def cos_sim(a,b):
     return np.min([np.dot(a,b)/(np.linalg.norm(a)*np.linalg.norm(b)),1])
 
-def ang_dis(a,b):
+def cos_dis(a,b):
     return 1 - cos_sim(a,b)#np.arccos(cos_sim(a,b)) / np.pi
 
 def get_group_sum_dis(sub_adata):
     # Compute all cumulative distances in an AnnData object
     cum_dis = 0
+    n_dists = 0
     for i,row_a in enumerate(sub_adata.X.toarray()):
         for j, row_b in enumerate(sub_adata.X.toarray()):
             if j < i:
                 # Compute angular distance
-                dis = ang_dis(row_a,row_b)
+                dis = cos_dis(row_a,row_b)
                 cum_dis += dis
-    return cum_dis
+                n_dists += 1
+    return cum_dis, n_dists
 
 def lm(data, formula='y ~ x'):
     '''

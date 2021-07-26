@@ -7,6 +7,26 @@ from matplotlib import cm
 
 '''Plotting functions'''
 
+cond_colors = {
+    'Healthy' : '#E41A1C',
+    'HF-A' : '#377EB8',
+    'HF-CKD' : '#4DAF4A',
+}
+
+ctype_colors = {
+    'adipocytes' : '#D51F26',
+    'cardiomyocyte' : '#272E6A',
+    'endothelial' : '#208A42',
+    'fibroblast' : '#89288F',
+    'lymphatic_endo' : '#F47D2B',
+    'macrophages' : '#FEE500',
+    'mast_cells' : '#8A9FD1',
+    'neuronal' : '#C06CAB',
+    'pericyte' : '#D8A767',
+    'T-cells' : '#90D5E4',
+    'vSMCs' : '#89C75F'
+}
+
 def plot_mt_vs_counts(data, ax, mt_thr=0.5, fontsize=11):    
     # Plot scatter
     ax.scatter(x=data.total_counts, y=data.pct_counts_mt, s=1, c='gray')
@@ -190,3 +210,40 @@ def proj(x, y, ax):
         m = y == label
         ax.scatter(x[m,0], x[m,1], label=label)
         ax.legend()
+        
+def varshift_condition(df, name):
+    # Define fig
+    fig, ax = plt.subplots(1,1, figsize=(3,3), dpi=150, facecolor='white')
+    
+    # Order by median
+    order = df.groupby('condition').median().sort_values('dist', ascending=False).index
+
+    # Plot boxplot
+    sns.boxplot(data=df, x='condition', y='dist', ax=ax, order=order, palette=cond_colors, linewidth=0.5)
+    ax.axhline(1, ls='--', c='black')
+    ax.set_xticklabels(ax.get_xticklabels(),rotation=90)
+    ax.set_title('Variation shifts', fontsize=11)
+    ax.set_ylabel('inter / intra dist')
+    ax.set_xlabel('')
+
+    # Save
+    fig.savefig('../plots/{0}'.format(name), bbox_inches='tight')
+    
+
+def varshift_cell_type(df, name):
+    # Define fig
+    fig, ax = plt.subplots(1,1, figsize=(9,3), sharey=True, dpi=150, facecolor='white')
+    
+    # Order by median
+    order = df.groupby('cell_type').median().sort_values('dist', ascending=False).index
+
+    # Plot boxplot
+    sns.boxplot(data=df, x='cell_type', y='dist', hue='condition', ax=ax, order=order, palette=cond_colors, linewidth=0.5)
+    ax.axhline(1, ls='--', c='black')
+    ax.set_xticklabels(ax.get_xticklabels(),rotation=90)
+    ax.set_title('Cell type variation shifts', fontsize=11)
+    ax.set_xlabel('')
+    ax.set_ylabel('inter dist / intra dist')
+
+    # Save
+    fig.savefig('../plots/{0}'.format(name), bbox_inches='tight')

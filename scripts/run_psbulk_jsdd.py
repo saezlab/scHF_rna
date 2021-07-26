@@ -55,7 +55,7 @@ for cell_type in cell_types:
                 x_a = sub_adata[msk_a]
                 x_b = sub_adata[msk_b]
                 
-               # Filter by DEG
+                # Filter by DEG
                 x_a = x_a[:,deg].X.toarray()[0]
                 x_b = x_b[:,deg].X.toarray()[0]
                 

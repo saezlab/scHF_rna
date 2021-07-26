@@ -19,9 +19,9 @@ cell_types = np.unique(adata.obs['cell_type'])
 ### Contrasts to test ###
 
 contr_dict = {
-    'hf-healthy' : ['hf','healthy'],
-    'hf_ckd-healthy' : ['hf_ckd','healthy'],
-    'hf_ckd-hf' : ['hf_ckd','hf']
+    'HF-A-Healthy' : ['HF-A','Healthy'],
+    'HF-CKD-Healthy' : ['HF-CKD','Healthy'],
+    'HF-CKD-HF-A' : ['HF-CKD','HF-A']
 }
 
 ###
@@ -39,6 +39,7 @@ for cell_type in cell_types:
     design = get_design(subadata.obs, 'condition')
     contr_matrix = get_contrast(design, contr_dict)
     data = pd.DataFrame(subadata.X.T, index=subadata.var.index, columns=subadata.obs.index)
+    design = design.loc[data.columns]
     deg = limma_fit(data, design, contr_matrix).sort_values(['contrast', 'pvals'])
 
     deg['cell_type'] = cell_type

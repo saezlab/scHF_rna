@@ -29,15 +29,18 @@ contr_dict = {
 ###
 
 # Load progeny model
-model = progeny.getModel(organism='Human', top=1000)
+model = progeny.load_model(organism='Human', top=1000)
+
+# Compute activities
+progeny.run(adata, model, center=True, norm=True, scale=True, num_perm=100, use_raw=False)
+
+# Save
+adata.write(input_path)
 
 dfs = []
 for cell_type in cell_types:
     # Filter by cell type
     subadata = adata[(adata.obs['cell_type'] == cell_type),]
-    
-    # Compute activities
-    progeny.run(subadata, model, center=False, scale=True, use_raw=False)
     
     # Compute DAP
     subadata.obs['condition'] = subadata.obs['condition'].astype(str)
@@ -45,7 +48,7 @@ for cell_type in cell_types:
     contr_matrix = get_contrast(design, contr_dict)
     data = progeny.extract(subadata)
     data = pd.DataFrame(data.X.T, index=data.var.index, columns=data.obs.index)
-    print(data)
+    design = design.loc[data.columns]
     df = limma_fit(data, design, contr_matrix).sort_values(['contrast', 'pvals'])
     df['cell_type'] = cell_type
     dfs.append(df)

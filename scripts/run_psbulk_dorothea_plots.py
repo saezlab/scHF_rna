@@ -12,9 +12,18 @@ results = pd.read_csv('../plot_data/func/dorothea.csv').sort_values(['names'])
 # Get unique contrasts
 contrasts = np.unique(results.contrast)
 
+# Filter cell types
+cell_types = ['T-cells', 'endothelial', 'fibroblast']
+
+results = results[results['cell_type'].isin(cell_types)]
+
 for contrast in contrasts:
     # Subset by contrast
     df = results[results.contrast == contrast]
+    
+    # Remove TFs that are unique
+    df = df[df.pvals < 0.05]
+    df = df[np.abs(df.logfoldchanges) > 2]
     
     # Plot dot plot
     fig = dotplot(title=contrast,

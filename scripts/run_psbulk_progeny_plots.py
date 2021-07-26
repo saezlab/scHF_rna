@@ -5,11 +5,17 @@ import matplotlib.pyplot as plt
 
 from plotting import dotplot
 
+
 # Read progeny results
 results = pd.read_csv('../plot_data/func/progeny.csv').sort_values(['names', 'cell_type'])
 
 # Get unique contrasts
 contrasts = np.unique(results.contrast)
+
+# Filter cell types
+cell_types = ['T-cells', 'endothelial', 'fibroblast']
+
+results = results[results['cell_type'].isin(cell_types)]
 
 for contrast in contrasts:
     # Subset by contrast

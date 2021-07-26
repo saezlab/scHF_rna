@@ -42,8 +42,14 @@ for contrast in contrasts:
         adata_b = adata_b[:,deg]
 
         #  Compute mean within groups as norm factor
-        norm = (get_group_sum_dis(adata_a) + get_group_sum_dis(adata_b)) / \
-        (adata_a.shape[0] + adata_b.shape[0])
+        sum_a, ndists_a = get_group_sum_dis(adata_a)
+        sum_b, ndists_b = get_group_sum_dis(adata_b)
+        norm = (sum_a + sum_b) / (ndists_a + ndists_b)
+        #norm = ( + get_group_sum_dis(adata_b)) #/ \
+        #(adata_a.shape[0] + adata_b.shape[0])
+        #print('shapes: ', adadata_a.shape[0], adata_b.shape[0])
+        #print('lenght'len(norm))
+        #norm = np.mean(norm)
 
         if norm == 0.0:
             norm = 1

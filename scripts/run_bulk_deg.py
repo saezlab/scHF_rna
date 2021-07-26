@@ -28,6 +28,7 @@ contr_dict = {
 design = get_design(adata.obs, 'condition')
 contr_matrix = get_contrast(design, contr_dict)
 data = pd.DataFrame(adata.X.T, index=adata.var.index, columns=adata.obs.index)
+design = design.loc[data.columns]
 deg = limma_fit(data, design, contr_matrix).sort_values(['contrast', 'pvals'])
 
 # Save

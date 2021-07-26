@@ -29,10 +29,13 @@ contr_dict = {
 ###
 
 # Get dorothea model
-model = dorothea.load_regulons()
+model = dorothea.load_regulons(['A', 'B', 'C'])
 
 # Compute activities
 dorothea.run(adata, model, center=True, norm=True, scale=True, num_perm=100, use_raw=False)
+
+# Save
+adata.write(input_path)
 
 dfs = []
 for cell_type in cell_types:
@@ -45,6 +48,7 @@ for cell_type in cell_types:
     contr_matrix = get_contrast(design, contr_dict)
     data = dorothea.extract(subadata)
     data = pd.DataFrame(data.X.T, index=data.var.index, columns=data.obs.index)
+    design = design.loc[data.columns]
     df = limma_fit(data, design, contr_matrix).sort_values(['contrast', 'pvals'])
     df['cell_type'] = cell_type
     dfs.append(df)
@@ -55,4 +59,3 @@ df = pd.concat(dfs)
 # Save
 os.makedirs('../plot_data/func/', exist_ok=True)
 df.to_csv('../plot_data/func/dorothea.csv', index=False)
-adata.obsm['dorothea'].to_csv('../plot_data/func/dorothea_act.csv', index=True, header=True)
