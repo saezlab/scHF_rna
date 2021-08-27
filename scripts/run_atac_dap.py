@@ -36,12 +36,12 @@ for file in files:
         cond1 = 'HF-A'
     contrast = cond2 + '-' + cond1
     names = pd.read_csv(os.path.join(path, file))
-    names = np.unique(names.peak_pos)
+    #names = np.unique(names.peak_pos)
     df = pd.DataFrame(columns=['names', 'contrast', 'cell_type'])
-    df['names'] = names
+    df['names'] = names.peak_pos
     df['contrast'] = contrast
     df['cell_type'] = cell_type
-    df['pvals'] = np.nan
+    df['pvals'] = names.PValue
     dap.append(df)
 df_dap = pd.concat(dap)
 
