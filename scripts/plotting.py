@@ -8,9 +8,9 @@ from matplotlib import cm
 '''Plotting functions'''
 
 cond_colors = {
-    'Healthy' : '#E41A1C',
-    'HF-A' : '#377EB8',
-    'HF-CKD' : '#4DAF4A',
+    'Healthy' : '#440154FF',
+    'HF-A' : '#21908CFF',
+    'HF-CKD' : '#FDE725FF',
 }
 
 ctype_colors = {
