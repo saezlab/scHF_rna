@@ -22,8 +22,12 @@ for cell_type in np.unique(df['CellType']):
 table = pd.DataFrame(table, columns=['cell_type', 'condition', 'stat', 'pval'])
 
 # Correct by FDR
-_, pvals_adj, _, _ = multipletests(table['pval'].values, alpha=0.05, method='fdr_bh')
-table['adj_pval'] = pvals_adj
-table = table.sort_values('pval')
+adj_table = []
+for cond in np.unique(df['Condition']):
+    subtable = table[table.condition == cond]
+    _, pvals_adj, _, _ = multipletests(subtable['pval'].values, alpha=0.05, method='fdr_bh')
+    subtable.loc[:,'adj_pval'] = pvals_adj
+    adj_table.append(subtable)
+table = pd.concat(adj_table).sort_values('adj_pval')
 
 table.to_csv('../tables/cellproportions.csv', index=False)

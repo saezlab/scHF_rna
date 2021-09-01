@@ -1,69 +1,35 @@
-import numpy as np
 import pandas as pd
-
-import pickle
+import numpy as np
 
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+from plotting import cond_colors 
 
-input_path = '../plot_data/jsd/plot_data.pkl'
-plot_data = pickle.load(open(input_path,"rb"))
-samples_ids = plot_data['samples_ids']
+# Load data
+df = pd.read_csv('../plot_data/jsd/jsd.csv')
 
-conditions = plot_data['conditions']
-cell_types = plot_data['cell_types']
-jsds = plot_data['jsds']
-coords = plot_data['coords']
+types = np.unique(df['type'])
+cell_types = np.unique(df['cell_type'])
 
-fig, axes = plt.subplots(3, 4, figsize=(12,9), dpi=150)
-fig.suptitle('JSD distances MDS', fontsize=16)
-axes = axes.flatten()
+for typ in types:
+    data = df[df['type'] == typ]
 
-for i in range(len(cell_types)):
-    ax = axes[i]
-    ctype = cell_types[i]
-    ax.set_title(ctype)
-    max_num = np.nanmax(np.abs(coords[i]))
-    max_num = max_num + max_num * 0.1
-    for cond in np.unique(conditions):
-        msk = conditions == cond
-        coord = coords[i][msk]
-        ax.scatter(coord[:,0], coord[:,1], label=cond, s=20)
+    fig, axes = plt.subplots(3,4, figsize=(12,9), tight_layout=True, facecolor='white')
+    axes = axes.flatten()
+
+    for i,cell_type in enumerate(cell_types):
+        ax = axes[i]
+        subadata = data[data.cell_type == cell_type]
+        sns.scatterplot(data=subadata, ax=ax,
+                        x='x', y='y', hue='condition', palette=cond_colors, legend=False)
         ax.set_box_aspect(1)
-        ax.set_xticks([])
-        ax.set_yticks([])
-        ax.set_xlim(-max_num,max_num)
-        ax.set_ylim(-max_num,max_num)
-        ax.set_xlabel('MDS 1')
-        ax.set_ylabel('MDS 2')
+        ax.set_title(cell_type)
+        if not np.all(np.isnan(subadata[['x','y']].values)):
+            n_max = np.nanmax(np.abs(subadata[['x','y']].values))
+            n_max = n_max + n_max * 0.1
+            ax.set_xlim(-n_max,n_max)
+            ax.set_ylim(-n_max,n_max)
         ax.axvline(x=0, alpha=0.25, color='grey', linestyle='--', zorder=0)
         ax.axhline(y=0, alpha=0.25, color='grey', linestyle='--', zorder=0)
-        
-fig.tight_layout()
-handles, labels = ax.get_legend_handles_labels()
-fig.legend(handles, labels, loc='right', frameon=False, fontsize=11)
-fig.subplots_adjust(right=0.9)
-fig.set_facecolor('white')
-
-fig.savefig('../plots/psbulk_jsd_mds.png')
-
-fig, axes = plt.subplots(3, 4, figsize=(12,9), dpi=150, sharex=True, sharey=True)
-fig.suptitle('JSD distances MDS', fontsize=16)
-axes = axes.flatten()
-
-for i in range(len(cell_types)):
-    ax = axes[i]
-    ctype = cell_types[i]
-    ax.set_title(ctype)
-    jsd = jsds[i]
-    order = np.argsort(conditions)
-    sns.heatmap(jsd[order][:,order], ax=ax, square=True, xticklabels=samples_ids[order], yticklabels=samples_ids[order],
-               cbar_kws={"shrink": .5}, cmap='viridis', robust=True)
-        
-fig.tight_layout()
-handles, labels = ax.get_legend_handles_labels()
-fig.legend(handles, labels, loc='right', frameon=False, fontsize=11)
-fig.set_facecolor('white')
-
-fig.savefig('../plots/psbulk_jsd_dist.png')
+    fig.savefig('../plots/psbulk_jsd_dist_{0}.pdf'.format(typ))
