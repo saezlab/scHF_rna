@@ -12,8 +12,7 @@ contrasts = ['HF-AvsHealthy', 'HF-CKDvsHealthy','HF-CKDvsHF-A']
 mat = df.pivot(index='names', columns='index', values='tvals')
 mat[np.isnan(mat)] = 0
 
-network = pd.read_csv('../data/dorothea_ABC.csv').rename(columns={'weight' : 'mor', 'tf' : 'source'})
-network['likelihood'] = 1.0
+network = pd.read_csv('../data/progeny_100.csv')
 
 # Run mlm
 acts = run_mlm(mat, network)
@@ -22,4 +21,4 @@ acts = acts[['source', 'contrast', 'cell_type', 'score', 'p_value']]
 acts = acts.rename(columns={'score' : 'tvals'})
 
 os.makedirs('../plot_data/func/', exist_ok=True)
-acts.to_csv('../plot_data/func/tfs.csv', index=False)
+acts.to_csv('../plot_data/func/pathways.csv', index=False)

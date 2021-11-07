@@ -234,8 +234,8 @@ def run_mlm(mat, network):
     robjects.globalenv['network'] = network
     acts = robjects.r('''
             library(decoupleR)
-            network <- intersect_regulons(mat, network, tf, target, 5)
-            acts <- run_mlm(mat, network, .source=tf)
+            network <- intersect_regulons(mat, network, source, target, 5)
+            acts <- run_mlm(mat, network)
             acts <- as.data.frame(acts)
             acts
             ''')
