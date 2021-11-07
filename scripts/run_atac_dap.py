@@ -34,7 +34,7 @@ for file in files:
 
     if cond1 == 'hf':
         cond1 = 'HF-A'
-    contrast = cond2 + '-' + cond1
+    contrast = cond2 + 'vs' + cond1
     names = pd.read_csv(os.path.join(path, file))
     #names = np.unique(names.peak_pos)
     df = pd.DataFrame(columns=['names', 'contrast', 'cell_type'])

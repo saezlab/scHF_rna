@@ -19,9 +19,9 @@ cell_types = np.unique(adata.obs['cell_type'])
 ### Contrasts to test ###
 
 contr_dict = {
-    'HF-A-Healthy' : ['HF-A','Healthy'],
-    'HF-CKD-Healthy' : ['HF-CKD','Healthy'],
-    'HF-CKD-HF-A' : ['HF-CKD','HF-A']
+    'HF-AvsHealthy' : ['HF-A','Healthy'],
+    'HF-CKDvsHealthy' : ['HF-CKD','Healthy'],
+    'HF-CKDvsHF-A' : ['HF-CKD','HF-A']
 }
 
 ###
