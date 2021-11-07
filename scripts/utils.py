@@ -205,14 +205,16 @@ def limma_fit(X, design, contr_matrix):
             fit <- lmFit(X, design)
             fit2 <- contrasts.fit(fit, contr_matrix)
             fit2 <- eBayes(fit2)
+            coefs <- as.data.frame(fit2$coefficients)
             tvals <- as.data.frame(fit2$t)
             pvals <- as.data.frame(fit2$p.value)
-            list(tvals, pvals)
+            list(coefs, tvals, pvals)
             ''')
-    tvals, pvals = x[0], x[1]
-    df = tvals.melt(ignore_index=False, value_name='logfoldchanges', var_name='contrast')
+    coefs, tvals, pvals = x[0], x[1], x[2]
+    df = coefs.melt(ignore_index=False, value_name='log2FC', var_name='contrast')
+    df['tvals'] = tvals.melt(ignore_index=False, value_name='tvals', var_name='contrast')['tvals']
     df['pvals'] = pvals.melt(ignore_index=False, value_name='pvals', var_name='contrast')['pvals']
     df = df.reset_index()
-    df.columns = ['names', 'contrast', 'logfoldchanges', 'pvals']
+    df.columns = ['names', 'contrast', 'log2FC', 'tvals', 'pvals']
     
     return df
