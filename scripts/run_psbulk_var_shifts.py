@@ -18,20 +18,19 @@ def get_cosine_distances(input_path, sign_path, n_features=500):
 
     # Compute angular distances for each condition
     df = []
-    for condition in conditions:
+    for contrast in contrasts:
+        cond_a, cond_b = contrast.split('vs')
         col_cell_types = []
         col_dists = []
         for cell_type in cell_types:
 
-            # Get a subset per condition and cell type
-            adata_a = adata[(adata.obs['condition']==condition)&(adata.obs['cell_type']==cell_type)]
-            adata_b = adata[(adata.obs['condition']!=condition)&(adata.obs['cell_type']==cell_type)]
+            # Get a subset per contrast and cell type
+            adata_a = adata[(adata.obs['condition']==cond_a)&(adata.obs['cell_type']==cell_type)]
+            adata_b = adata[(adata.obs['condition']==cond_b)&(adata.obs['cell_type']==cell_type)]
 
             # Get union of top n significant features per contrasts for a given cell type
             ftrs = sign[sign['cell_type']==cell_type]
-            ftrs_lst = []
-            for contrast in contrasts:
-                ftrs_lst.extend(ftrs[ftrs['contrast']==contrast].sort_values('pvals').head(n_features)['names'].values)
+            ftrs_lst = ftrs[ftrs['contrast']==contrast].sort_values('pvals').head(n_features)['names'].values
 
             ftrs_lst = np.unique(ftrs_lst)
             print(cell_type, len(ftrs_lst))
@@ -54,9 +53,9 @@ def get_cosine_distances(input_path, sign_path, n_features=500):
                             dis = cos_dis(row_a,row_b)/norm
                         else:
                             dis = np.nan
-                        row = [condition, cell_type, dis]
+                        row = [contrast, cell_type, dis]
                         df.append(row)
-    df = pd.DataFrame(df, columns=['condition', 'cell_type', 'dist'])
+    df = pd.DataFrame(df, columns=['contrast', 'cell_type', 'dist'])
     return df
 
 # RNA distances
@@ -76,14 +75,14 @@ atac_df['type'] = 'atac'
 # Merge
 df = pd.concat([rna_df, atac_df])
 
-# Compute significance conditions
+# Compute significance contrasts
 table = []
-for condition in np.unique(df['condition']):
-    dist = df[df['condition'] == condition].dist.values
+for contrast in np.unique(df['contrast']):
+    dist = df[df['contrast'] == contrast].dist.values
     dist = dist[~np.isnan(dist)]
     _, pval = stats.ttest_1samp(dist, 1, alternative='greater')
-    table.append([condition, pval])
-table = pd.DataFrame(table, columns=['condition', 'pval'])
+    table.append([contrast, pval])
+table = pd.DataFrame(table, columns=['contrast', 'pval'])
     
 # Correct by FDR
 _, pvals_adj, _, _ = multipletests(table['pval'].values, alpha=0.05, method='fdr_bh')
@@ -91,17 +90,17 @@ table['adj_pval'] = pvals_adj
 table = table.sort_values('pval')
 
 # Save
-table.to_csv('../tables/shifts_conditions.csv', index=False)
+table.to_csv('../tables/shifts_contrasts.csv', index=False)
 
 # Compute significance cell types
 table = []
 for cell_type in np.unique(df['cell_type']):
-    for condition in np.unique(df['condition']):
-        dist = df[(df['cell_type'] == cell_type)&(df['condition'] == condition)].dist.values
+    for contrast in np.unique(df['contrast']):
+        dist = df[(df['cell_type'] == cell_type)&(df['contrast'] == contrast)].dist.values
         dist = dist[~np.isnan(dist)]
         _, pval = stats.ttest_1samp(dist, 1, alternative='greater')
-        table.append([cell_type, condition, pval])
-table = pd.DataFrame(table, columns=['cell_type', 'condition', 'pval'])
+        table.append([cell_type, contrast, pval])
+table = pd.DataFrame(table, columns=['cell_type', 'contrast', 'pval'])
 
 # Correct by FDR
 _, pvals_adj, _, _ = multipletests(table['pval'].values, alpha=0.05, method='fdr_bh')
