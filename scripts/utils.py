@@ -241,3 +241,26 @@ def run_mlm(mat, network):
             ''')
     
     return acts
+
+def run_ora(mat, network):
+    '''
+    Runs method ora from decoupleR
+    '''
+    import logging
+    import rpy2.rinterface_lib.callbacks
+    rpy2.rinterface_lib.callbacks.logger.setLevel(logging.ERROR)
+    from rpy2.robjects import pandas2ri
+    pandas2ri.activate()
+    import rpy2.robjects as robjects
+    
+    robjects.globalenv['mat'] = mat
+    robjects.globalenv['network'] = network
+    acts = robjects.r('''
+            library(decoupleR)
+            network <- intersect_regulons(mat, network, source, target, 5)
+            acts <- run_ora(mat, network, n_up=150, n_bottom=150)
+            acts <- as.data.frame(acts)
+            acts
+            ''')
+    
+    return acts
