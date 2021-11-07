@@ -2,6 +2,8 @@ import scanpy as sc
 import numpy as np
 import pandas as pd
 
+import os
+
 from sccoda.util import comp_ana as mod
 from sccoda.util import cell_composition_data as dat
 
@@ -9,49 +11,45 @@ from sccoda.util import cell_composition_data as dat
 # Define reference cell type
 reference_cell_type = 'neuronal'
 
-# Read AnnData object
-input_path = '../qc_data/pseudobulk.h5ad'
-adata = sc.read_h5ad(input_path)
-
-# Get unique conditions
-conditions = np.unique(adata.obs['condition'])
-
 # Get scCODA input:
 # sample_id  condition  T-cells  adipocytes  cardiomyocyte
 # CK114      healthy    238      0           1246.0
-df = adata.obs.pivot(index=['sample_id','condition'], columns='cell_type', values='cell_num')
-df[np.isnan(df)] = 0
+df = pd.read_csv('../plot_data/var_shifts/cell_proportions.csv')
+df = df.pivot(index=['Patient', 'Data', 'Condition'], columns='CellType', values='Counts')
+df[np.isnan(df)] = 0.5
 df = df.rename(columns=str).reset_index()
 df.columns.name = None
+del df['Data']
 
 # Create scCODA AnnData object
-data = dat.from_pandas(df, covariate_columns=['sample_id', 'condition'])
+data = dat.from_pandas(df, covariate_columns=['Patient', 'Condition'])
+
+# Get unique contrasts
+conditions = np.unique(df['Condition'])
 
 # Initialize empty df
 eff_df = pd.DataFrame(columns=data.var.index)
 
+# Contrasts
+contrasts = ['HF-AvsHealthy', 'HF-CKDvsHealthy','HF-CKDvsHF-A']
+
 # Test effects for each condition that is not healthy
-for i,cond_a in enumerate(conditions):
-    for j,cond_b in enumerate(conditions):
-        if i < j:
-            contrast = '{0}-{1}'.format(cond_b, cond_a)
-            print(contrast)
-            
-            # Select control and condition data
-            data_cond = data[data.obs["condition"].isin([cond_a, cond_b])]
-            data_cond.obs['condition'] = data_cond.obs['condition'].astype(str)
-            data_cond.obs['condition'] = data_cond.obs['condition'].astype('category').cat.reorder_categories([cond_a, cond_b])
-            model_cond = mod.CompositionalAnalysis(data_cond, formula="condition", reference_cell_type=reference_cell_type)
-            
-            # Run MCMC
-            sim_results = model_cond.sample_hmc()
-            
-            # Add to df
-            eff_df.loc[contrast] = sim_results.summary_prepare()[1].reset_index(level=[0])['Final Parameter']
+for contrast in contrasts:
+    print(contrast)
+    cond_a, cond_b = contrast.split('vs')
 
-# Add effects to adata object
-adata.uns['coda'] = eff_df.T
+    # Select control and condition data
+    data_cond = data[data.obs["Condition"].isin([cond_b, cond_a])]
+    data_cond.obs['Condition'] = data_cond.obs['Condition'].astype(str)
+    data_cond.obs['Condition'] = data_cond.obs['Condition'].astype('category').cat.reorder_categories([cond_b, cond_a])
+    model_cond = mod.CompositionalAnalysis(data_cond, formula="Condition", reference_cell_type=reference_cell_type)
 
+    # Run MCMC
+    sim_results = model_cond.sample_hmc()
 
-# Write to file
-adata.write('../qc_data/pseudobulk.h5ad')
+    # Add to df
+    eff_df.loc[contrast] = sim_results.summary_prepare()[1].reset_index(level=[0])['Final Parameter']
+
+# Save
+os.makedirs('../plot_data/coda', exist_ok=True)
+eff_df.to_csv('../plot_data/coda/coda.csv')
