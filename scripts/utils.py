@@ -218,3 +218,26 @@ def limma_fit(X, design, contr_matrix):
     df.columns = ['names', 'contrast', 'log2FC', 'tvals', 'pvals']
     
     return df
+
+def run_mlm(mat, network):
+    '''
+    Runs method mlm from decoupleR
+    '''
+    import logging
+    import rpy2.rinterface_lib.callbacks
+    rpy2.rinterface_lib.callbacks.logger.setLevel(logging.ERROR)
+    from rpy2.robjects import pandas2ri
+    pandas2ri.activate()
+    import rpy2.robjects as robjects
+    
+    robjects.globalenv['mat'] = mat
+    robjects.globalenv['network'] = network
+    acts = robjects.r('''
+            library(decoupleR)
+            network <- intersect_regulons(mat, network, tf, target, 5)
+            acts <- run_mlm(mat, network, .source=tf)
+            acts <- as.data.frame(acts)
+            acts
+            ''')
+    
+    return acts
