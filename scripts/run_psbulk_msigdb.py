@@ -16,7 +16,7 @@ network = []
 for row in get_db():
     gset_id, gset_desc, gset = row
     for gene in gset:
-        network.append([gset_desc, gene, 1, 1])
+        network.append([gset_id, gene, 1, 1])
 network = pd.DataFrame(network, columns=['source', 'target', 'mor', 'likelihood'])
 network = network.drop_duplicates(['source', 'target'])
 
