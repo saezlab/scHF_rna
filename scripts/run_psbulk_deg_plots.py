@@ -20,7 +20,7 @@ for contrast in contrasts:
     axes[0].set_visible(False) 
     
     # Get max lfc to set as limit for plot
-    max_lfc = np.max(np.abs(df[df['contrast']==contrast]['logfoldchanges']))
+    max_lfc = np.max(np.abs(df[df['contrast']==contrast]['log2FC']))
     
     # Volcano for each cell type
     for ctype,ax in zip(cell_types, axes[1:]):
@@ -28,7 +28,7 @@ for contrast in contrasts:
         if deg.shape[0] == 0:
             ax.set_visible(False) 
             continue
-        lfcs = np.array(deg['logfoldchanges'])
+        lfcs = np.array(deg['log2FC'])
         pvals = np.array(deg['pvals'].tolist())
         volcano(ctype, lfcs, pvals, ax, max_lfc)
     
