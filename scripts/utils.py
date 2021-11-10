@@ -264,3 +264,38 @@ def run_ora(mat, network):
             ''')
     
     return acts
+
+def edgeR(X, meta, contrast):
+    '''
+    Computes DEA using edgeR
+    '''
+    import logging
+    import rpy2.rinterface_lib.callbacks
+    rpy2.rinterface_lib.callbacks.logger.setLevel(logging.ERROR)
+    from rpy2.robjects import pandas2ri
+    pandas2ri.activate()
+    import rpy2.robjects as robjects
+    
+    robjects.globalenv['X'] = X
+    robjects.globalenv['meta'] = meta
+    robjects.globalenv['contrast'] = contrast
+    df = robjects.r('''
+            library(edgeR)
+            dat <- DGEList(X, samples = meta)
+            keep <- filterByExpr(dat, group = meta$condition)
+            dat <- dat[keep,]
+            dat <- calcNormFactors(dat)
+            cond <- strsplit(contrast, 'vs')[[1]][1]
+            ref <- strsplit(contrast, 'vs')[[1]][2]
+            design <- model.matrix(~factor(condition, levels = c(ref, cond)), dat$samples)
+            colnames(design) <- c("int", contrast)
+            dat <- estimateDisp(dat, design)
+            fit <- glmQLFit(dat, design, robust=TRUE)
+            res <- glmQLFTest(fit, coef=ncol(design))
+            de_res <- topTags(res, n = Inf)
+            genes <- rownames(de_res)
+            de_res <- as.data.frame(de_res)
+            de_res[['names']] <- genes
+            de_res
+            ''')
+    return df
