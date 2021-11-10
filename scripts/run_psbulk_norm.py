@@ -11,11 +11,11 @@ from utils import vsn_normalize
 input_path = '../qc_data/integrated.h5ad'
 meta = sc.read_h5ad(input_path)
 
-# Get complete list of genes
-g_arr = meta.raw.var.index.values
-
 # Filter out unknown cells
 meta = meta[meta.obs['cell_type'] != 'unknown']
+
+# Get complete list of genes
+g_arr = meta.raw.var.index.values
 
 # Get metadata
 meta = meta.obs
@@ -94,21 +94,25 @@ pb_adata.obs['cell_num'] = col_cell_num
 pb_adata.obs['cell_prop'] = col_cell_prop
 pb_adata.var.index = g_arr
 
+# Store raw counts
+pb_adata.raw = pb_adata
+
 # Remove genes that are less than 5% in min_size samples
 for cell_type in cell_types:
     # Get cell type and gene msks
     ctype_msk = pb_adata.obs['cell_type'] == cell_type
+    n_samples = np.sum(ctype_msk)
     msk = np.sum(lst_msks[ctype_msk], axis=0) >= min_size
     print(cell_type, 'num genes:', np.sum(msk))
     
     # Subset
     sub_X = np.array(pb_adata[ctype_msk, msk].X)
     
-    # VSN normalize
-    X_norm = vsn_normalize(sub_X)
+    # CPM norm
+    X_norm = sc.pp.log1p((sub_X / np.sum(sub_X, axis=1).reshape(-1,1)) * 1e4)
     
     # Set filtered genes expr to 0
-    Xdim = (np.sum(ctype_msk), msk.shape[0])
+    Xdim = (n_samples, msk.shape[0])
     sub_X = np.zeros(Xdim)
     
     # Add normalized values to matrix
